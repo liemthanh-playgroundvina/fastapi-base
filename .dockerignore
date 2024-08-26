@@ -1,0 +1,6 @@
+docker/
+.venv/*
+.idea/*
+cache/
+venv/*
+.git/

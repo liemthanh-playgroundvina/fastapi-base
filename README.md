@@ -1,4 +1,4 @@
-# AI Automatic Answer Service DEV
+# Fastapi Base
 ## Installation dev
 Create secret key:
 ```
@@ -7,10 +7,7 @@ $ cp env.example .env       // Update
 ```
 Run:
 ```
-$ git clone https://github.com/playgroundvina/fastapi-base
-$ cd fastapi-base
-$ docker build -t ai-auto-answer .
-$ docker compose up -d
+
 ```
 
 ## Project structure

@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  # App
+  app:
+    image: ${DOCKER_HUB_URL}/${NAME}:${ENV}
+    container_name: ${NAME}-${ENV}-app
+    command: [ "scripts/entrypoint.sh" ]
+    depends_on:
+      - db
+      - alembic
+    restart: unless-stopped
+    ports:
+      - "${BASE_PORT}:${BASE_PORT}"
+    env_file:
+      - .env
+    networks:
+      - net
+
+  # Database
+  db:
+     image: postgres:13.2
+     container_name: ${NAME}-${ENV}-db
+     restart: unless-stopped
+     expose:
+       - 5432
+     ports:
+       - "${POSTGRES_PORT}:5432"
+     environment:
+       - POSTGRES_USER=${POSTGRES_USER}
+       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+       - POSTGRES_DB=${POSTGRES_DB}
+     volumes:
+       - volume-db:/var/lib/postgresql/data
+     networks:
+       - net
+
+  # Migration
+  alembic:
+    image: ${DOCKER_HUB_URL}/${NAME}:${ENV}
+    container_name: ${NAME}-${ENV}-alembic
+    env_file:
+      - .env
+    command: [ "alembic", "-c", "alembic/alembic.ini", "upgrade", "head" ]
+    networks:
+       - net
+
+volumes:
+  volume-db:
+    name: ${NAME}-${ENV}-db-data
+
+networks:
+  net:
+    name: ${NAME}-${ENV}-net
