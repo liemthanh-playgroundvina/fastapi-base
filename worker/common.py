@@ -51,7 +51,7 @@ class WorkerCommonService(object):
 
     @staticmethod
     def upload_s3_file(file_path: str, content_type: str, folder_in_s3: str):
-        from ai_celery.upload_s3 import upload_file
+        from worker.upload_s3 import upload_file
 
         with open(file_path, "rb") as file:
             file_to_upload = S3UploadFileObject(filename=os.path.basename(file_path), file=file, mimetype=content_type)
@@ -67,7 +67,7 @@ class WorkerCommonService(object):
 
     @staticmethod
     def fast_upload_s3_files(files_path: Union[list, dict], folder_in_s3: str):
-        from ai_celery.upload_s3 import fast_upload_files
+        from worker.upload_s3 import fast_upload_files
         if isinstance(files_path, list):
             urls = fast_upload_files(files_path, folder_in_s3)
         elif isinstance(files_path, dict):
