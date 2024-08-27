@@ -80,6 +80,7 @@ venv/*
 
 # static
 /static/public/*
+!/static/public/docs/
 cache/
 logs/*
 !logs/logging.ini
