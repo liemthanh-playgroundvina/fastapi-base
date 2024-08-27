@@ -41,7 +41,7 @@ def create_super_user():
         print('Admin created successfully.')
     except IntegrityError as e:
         if "duplicate key value violates unique constraint" in str(e.orig):
-            print("User already exists.")
+            print("Admin already exists, skip.")
         else:
             print("An error occurred:", str(e))
         session.rollback()

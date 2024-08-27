@@ -3,15 +3,26 @@ version: '3.8'
 services:
   # App
   app:
-    image: ${DOCKER_HUB_URL}/${NAME}:${ENV}
+    image: ${DOCKER_HUB_URL}/${NAME}-app:${ENV}
     container_name: ${NAME}-${ENV}-app
-    command: [ "scripts/entrypoint.sh" ]
-    depends_on:
-      - db
-      - alembic
-    restart: unless-stopped
+    command: [ "scripts/entrypoint.app.sh" ]
     ports:
       - "${BASE_PORT}:${BASE_PORT}"
+    restart: unless-stopped
+    depends_on:
+      - alembic
+    env_file:
+      - .env
+    networks:
+      - net
+
+  # Migration
+  alembic:
+    image: ${DOCKER_HUB_URL}/${NAME}-app:${ENV}
+    container_name: ${NAME}-${ENV}-alembic
+    command: [ "alembic", "-c", "alembic/alembic.ini", "upgrade", "head" ]
+    depends_on:
+      - db
     env_file:
       - .env
     networks:
@@ -33,16 +44,6 @@ services:
      volumes:
        - volume-db:/var/lib/postgresql/data
      networks:
-       - net
-
-  # Migration
-  alembic:
-    image: ${DOCKER_HUB_URL}/${NAME}:${ENV}
-    container_name: ${NAME}-${ENV}-alembic
-    env_file:
-      - .env
-    command: [ "alembic", "-c", "alembic/alembic.ini", "upgrade", "head" ]
-    networks:
        - net
 
 volumes:

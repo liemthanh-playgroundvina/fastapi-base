@@ -20,23 +20,28 @@ load-env: setup-env
 
 # Docker
 build: load-env
-	@docker build -t $(DOCKER_HUB_URL)/$(NAME):$(ENV) -f docker/Dockerfile .
+	@docker build -t $(DOCKER_HUB_URL)/$(NAME)-app:$(ENV) -f docker/Dockerfile/app .
+	@docker build -t $(DOCKER_HUB_URL)/$(NAME)-worker:$(ENV) -f docker/Dockerfile/worker .
 
 push: build
-	@docker push $(DOCKER_HUB_URL)/$(NAME):$(ENV)
+	@docker push $(DOCKER_HUB_URL)/$(NAME)-app:$(ENV)
+	@docker push $(DOCKER_HUB_URL)/$(NAME)-worker:$(ENV)
 
 pull: load-env
-	@docker pull $(DOCKER_HUB_URL)/$(NAME):$(ENV)
+	@docker pull $(DOCKER_HUB_URL)/$(NAME)-app:$(ENV)
+	@docker pull $(DOCKER_HUB_URL)/$(NAME)-worker:$(ENV)
 
 clean: load-env
-	@docker rmi $(DOCKER_HUB_URL)/$(NAME):$(ENV) || true
-
+	@docker rmi $(DOCKER_HUB_URL)/$(NAME)-app:$(ENV)
+	@docker rmi $(DOCKER_HUB_URL)/$(NAME)-worker:$(ENV)
 # Run
 stop: load-env
 	@cp -f .env docker/$(ENV)/.env
 	@docker compose -f docker/$(ENV)/docker-compose.yml -p $(NAME)-$(ENV) down
+	@docker compose -f docker/$(ENV)/docker-compose.worker.yml -p $(NAME)-$(ENV) down
 
 start: stop
 	@docker compose -f docker/$(ENV)/docker-compose.yml -p $(NAME)-$(ENV) up -d
+	@docker compose -f docker/$(ENV)/docker-compose.worker.yml -p $(NAME)-$(ENV) up -d
 
 deploy: pull start
