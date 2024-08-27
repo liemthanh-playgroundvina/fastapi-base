@@ -7,7 +7,7 @@ services:
     container_name: ${NAME}-${ENV}-app
     command: [ "scripts/entrypoint.app.sh" ]
     ports:
-      - "${BASE_PORT}:${BASE_PORT}"
+      - "8888:${BASE_PORT}"
     restart: unless-stopped
     depends_on:
       - alembic
