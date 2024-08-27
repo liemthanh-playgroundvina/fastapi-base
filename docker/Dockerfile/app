@@ -13,16 +13,17 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 
+COPY --from=builder /root/.local /root/.local
+
 COPY ./alembic /app/alembic
 COPY ./app /app/app
 COPY ./static /app/static
-COPY ./scripts /app/scripts
 COPY ./tests /app/tests
 COPY ./logs /app/logs
-RUN touch logs/app.log logs/celery.log
-
-COPY --from=builder /root/.local /root/.local
+RUN touch logs/app.log
+COPY ./scripts /app/scripts
+RUN chmod +x scripts/*
 
 EXPOSE 8000
 
-CMD ["/bin/bash"]
+CMD ["scripts/entrypoint.app.sh"]

@@ -13,8 +13,8 @@ from amqp.exceptions import PreconditionFailed
 @app.task(
     bind=True,
     base=BaseTask,
-    soft_time_limit=settings.QUEUE_TIME_LIMIT,
-    time_limit=settings.QUEUE_TIME_LIMIT + 20,
+    soft_time_limit=float(settings.QUEUE_TIME_LIMIT),
+    time_limit=float(settings.QUEUE_TIME_LIMIT) + 20,
     name=f"{settings.WORKER_NAME}.healthcheck",
     queue=settings.WORKER_NAME
 )
@@ -35,7 +35,7 @@ def healthcheck_task(self, task_id: str, data: bytes):
             "nvidia-smi": check_nvidia_smi(),
             "nvcc -V": check_nvcc_version(),
             "pytorch-gpu": check_torch_gpu(),
-            "onnxruntime-gpu": check_torch_gpu(),
+            "onnxruntime-gpu": check_onnxruntime_gpu(),
         }
 
         # Successful
