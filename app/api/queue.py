@@ -34,7 +34,10 @@ def queue_status(
     - PENDING:
     - SUCCESS:
     - FAILED:
+    - TIMEOUT:
+    - TIMELIMIT:
     - KILLED:
+
     """
     data = redis.get(task_id)
     if data is None:
@@ -63,19 +66,19 @@ def queue_status(
     # print(type(start_time), type(curr_time))
     if curr_time - start_time > float(settings.QUEUE_TIMEOUT) and status_general == "PENDING":
         logging.getLogger('app').debug(Exception(f"{task_id}: Worker is don't working, or queue time out!"), exc_info=True)
-        message["status"]["general_status"] = "FAILED"
+        message["status"]["general_status"] = "TIMEOUT"
         message["time"]["end_generate"] = str(curr_time)
-        message['error'] = {'code': "500", 'message': "Internal Server Error!"}
+        message['error'] = {'code': "502", 'message': "Internal Server Error!"}
         data_dump = json.dumps(message)
         redis.set(task_id, data_dump)
 
     # Check task is working -> dead -> failed ()
     status_task = message["status"]["task_status"]
-    if (status_general == "SUCCESS" and status_task != "SUCCESS") and curr_time - start_time > float(60*60*8):
+    if (status_general == "SUCCESS" and status_task != "SUCCESS") and curr_time - start_time > float(settings.QUEUE_TIME_LIMIT) * 10:
         logging.getLogger('app').debug(Exception(f"{task_id}: Task failed after work, maybe worker dead when processing"), exc_info=True)
-        message["status"]["general_status"] = "FAILED"
+        message["status"]["general_status"] = "TIMELIMIT"
         message["time"]["end_generate"] = str(curr_time)
-        message['error'] = {'code': "500", 'message': "Internal Server Error!"}
+        message['error'] = {'code': "503", 'message': "Internal Server Error!"}
         data_dump = json.dumps(message)
         redis.set(task_id, data_dump)
 
