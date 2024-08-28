@@ -1,0 +1,12 @@
+FROM ghcr.io/abetlen/llama-cpp-python:v0.2.79
+
+RUN apt-get update && apt-get install -y \
+    jq \
+    && apt-get clean
+
+RUN pip3 install huggingface-hub
+
+COPY ./scripts/llm/* ./scripts/
+RUN chmod +x ./scripts/*
+
+CMD ["bash"]
