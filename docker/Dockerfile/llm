@@ -7,6 +7,7 @@ RUN apt-get update && apt-get install -y \
 
 RUN pip3 install huggingface-hub
 
+COPY ./static/* /app/static/
 COPY ./scripts/llm/* ./scripts/
 RUN chmod +x ./scripts/*
 

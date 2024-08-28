@@ -2,38 +2,8 @@ import os
 import json
 import subprocess
 
-config = {
-  "host": "0.0.0.0",
-  "port": 8000,
-  "models": [
-    {
-      "_repo": "Qwen/Qwen2-1.5B-Instruct-GGUF",
-      "_filename": "qwen2-1_5b-instruct-q4_k_m.gguf",
-
-      "model": "/models/qwen2-1_5b-instruct-q4_k_m.gguf",
-      "model_alias": "qwen2-1.5b",
-      "chat_format": "qwen",
-      "n_ctx": 32768,
-      "n_threads": 4,
-      "n_gpu_layers": 35,
-      "offload_kqv": True,
-      "flash_attn": True
-    },
-    {
-      "_repo": "Qwen/Qwen2-1.5B-Instruct-GGUF",
-      "_filename": "qwen2-1_5b-instruct-q8_0.gguf",
-
-      "model": "/models/qwen2-1_5b-instruct-q8_0.gguf",
-      "model_alias": "qwen2-1.5b-q8",
-      "chat_format": "qwen",
-      "n_ctx": 32768,
-      "n_threads": 4,
-      "n_gpu_layers": 35,
-      "offload_kqv": True,
-      "flash_attn": True
-    }
-  ]
-}
+with open('/app/static/files/llm/config.json', 'r') as f:
+    config = json.load(f)
 
 # Download Models
 for model in config['models']:
