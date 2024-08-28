@@ -5,7 +5,7 @@ services:
   llm:
     image: ${DOCKER_HUB_URL}/${NAME}-llm:${ENV}
     container_name: ${NAME}-${ENV}-llm
-    command: [ "scripts/entrypoint.sh" ]
+    command: [ "/app/scripts/entrypoint.sh" ]
     restart: always
     env_file:
       - .env
@@ -27,12 +27,12 @@ services:
   em:
     image: ghcr.io/huggingface/text-embeddings-inference:cuda-1.5
     container_name: ${NAME}-${ENV}-em
-    command: ["--model-id", "BAAI/bge-m3"]
+    command: ["--port", "8000", "--model-id", "BAAI/bge-m3"]
     restart: always
     env_file:
       - .env
     expose:
-      - 80
+      - 8000
     volumes:
       - volume-em:/data
     environment:
