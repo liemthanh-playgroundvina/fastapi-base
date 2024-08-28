@@ -21,7 +21,7 @@ COPY ./static /app/static
 COPY ./tests /app/tests
 COPY ./logs /app/logs
 RUN touch logs/app.log
-COPY ./scripts /app/scripts
+COPY ./scripts/app /app/scripts
 RUN chmod +x scripts/*
 
 EXPOSE 8000
