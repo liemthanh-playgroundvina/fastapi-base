@@ -126,3 +126,17 @@ class ChatVisionRequest(BaseChatRequest):
     def validate(cls, values):
         values = super().validate(values)  # Validate base class
         return values
+
+
+class EmbedDocRequest(BaseModel):
+    urls: Optional[list]
+
+    class Config:
+        schema_extra = {
+            "example": {
+                "urls": [
+                    "https://aiservices-bucket.s3.amazonaws.com/chat-vision/screen.jpg",
+                    "https://python.langchain.com/v0.2/docs/how_to/#document-loaders"
+                ],
+            }
+        }
