@@ -1,5 +1,6 @@
 import os
-import time
+import uuid
+
 import uuid
 import requests
 from datetime import datetime
@@ -34,7 +35,7 @@ class CommonService(object):
         if not os.path.exists(save_directory):
             os.makedirs(save_directory)
 
-        unique_filename = f"{int(time.time())}_{os.path.basename(file.filename)}"
+        unique_filename = f"{uuid.uuid4().hex}_{os.path.basename(file.filename)}"
         file_path = os.path.join(save_directory, unique_filename)
 
         with open(file_path, "wb") as f:
@@ -48,7 +49,7 @@ class CommonService(object):
             os.makedirs(save_directory)
 
         parsed_url = urlparse(file_url)
-        unique_filename = f"{int(time.time())}_{os.path.basename(parsed_url.path)}"
+        unique_filename = f"{uuid.uuid4().hex}_{os.path.basename(parsed_url.path)}"
         file_path = os.path.join(save_directory, unique_filename)
 
         try:
