@@ -78,7 +78,7 @@ def chat_openai(request: dict):
     # Check check_web_browser
     logging.getLogger('app').info("-- CHECK MODE WEB SEARCH:")
 
-    response, res_metadata = check_web_browser(messages[1:])
+    response, res_metadata = check_web_browser(messages[1:], client)
     logging.getLogger('app').info(str(response))
 
     if response['web_browser_mode']:
@@ -175,7 +175,7 @@ def chat_openai(request: dict):
     }
 
 
-def check_web_browser(list_message: list):
+def check_web_browser(list_message: list, client: OpenAI):
     """Using OpenAI check query need using web browser or not"""
 
     # System prompt
@@ -223,7 +223,6 @@ Example for format GPT outputs:
     logging.getLogger('app').info(mess_str)
 
     # Model
-    client = OpenAI(api_key=settings.OPENAI_KEY)
     response = client.chat.completions.create(
         model="gpt-4o",
         temperature=0.7,
