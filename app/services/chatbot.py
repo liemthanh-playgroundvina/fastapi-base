@@ -229,7 +229,7 @@ def update_query_web_browsing(user_query: str, urls: list):
     texts = GoogleSearchService().web_scraping(urls)
 
     user_prompt = """Using data was searched on the internet to answer of user query:
-[Internet_Data]
+<Internet_Data>
 """
     for i in range(0, len(urls)):
         try:
