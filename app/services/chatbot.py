@@ -76,29 +76,29 @@ def chat_openai(request: dict):
     else:
         messages[0]['content'] = get_system_prompt_follow_name(messages[0]['content'], None)
 
-    # # Check check_web_browser
-    # logging.getLogger('app').info("-- CHECK MODE WEB SEARCH:")
-    #
-    # response, res_metadata = check_web_browser(messages[1:], client, model)
-    # logging.getLogger('app').info(str(response))
-    #
-    # if response['web_browser_mode']:
-    #     request['chat_model']['temperature'] = 0.5
-    #     yield {
-    #         "event": "new_message",
-    #         "id": message_id,
-    #         "retry": settings.RETRY_TIMEOUT,
-    #         "data": "[SEARCHING]",
-    #     }
-    #     question = f"{response['request']['query']} {response['request']['time']}"
-    #     urls = GoogleSearchService().google_search(question, num=response['request']['num_link'])
-    #     messages[-1]['content'] = update_query_web_browsing(messages[-1]['content'], urls)
-    #     yield {
-    #         "event": "new_message",
-    #         "id": message_id,
-    #         "retry": settings.RETRY_TIMEOUT,
-    #         "data": f"[END_SEARCHING]{json.dumps(urls)}",
-    #     }
+    # Check check_web_browser
+    logging.getLogger('app').info("-- CHECK MODE WEB SEARCH:")
+
+    response, res_metadata = check_web_browser(messages[1:], client, model)
+    logging.getLogger('app').info(str(response))
+
+    if response['web_browser_mode']:
+        request['chat_model']['temperature'] = 0.5
+        yield {
+            "event": "new_message",
+            "id": message_id,
+            "retry": settings.RETRY_TIMEOUT,
+            "data": "[SEARCHING]",
+        }
+        question = f"{response['request']['query']} {response['request']['time']}"
+        urls = GoogleSearchService().google_search(question, num=response['request']['num_link'])
+        messages[-1]['content'] = update_query_web_browsing(messages[-1]['content'], urls)
+        yield {
+            "event": "new_message",
+            "id": message_id,
+            "retry": settings.RETRY_TIMEOUT,
+            "data": f"[END_SEARCHING]{json.dumps(urls)}",
+        }
 
     # Log message
     logging.getLogger('app').info("-- PROMPT CHATBOT: " + (store_name or ""))
