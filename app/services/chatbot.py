@@ -81,7 +81,7 @@ def chat_openai(request: dict):
     # Check check_web_browser
     logging.getLogger('app').info("-- CHECK MODE WEB SEARCH:")
 
-    response, res_metadata = check_web_browser(messages[1:], client, model)
+    response, res_metadata = check_web_browser(messages[1:])
     logging.getLogger('app').info(str(response))
 
     if response['web_browser_mode']:
@@ -178,7 +178,7 @@ def chat_openai(request: dict):
     }
 
 
-def check_web_browser(list_message: list, client: OpenAI, model):
+def check_web_browser(list_message: list, hostname="OpenAI", model="gpt-4o-mini"):
     """Using OpenAI check query need using web browser or not"""
 
     # User prompt
@@ -199,16 +199,10 @@ def check_web_browser(list_message: list, client: OpenAI, model):
     logging.getLogger('app').info(mess_str)
 
     # Model
-    # client = OpenAI(api_key=settings.OPENAI_API_KEY)
-    # response = client.chat.completions.create(
-    #     model="gpt-4o",
-    #     temperature=0.5,
-    #     response_format={"type": "json_object"},
-    #     messages=messages
-    # )
+    client = OpenAI(api_key=settings.OPENAI_API_KEY)
     response = client.chat.completions.create(
         model=model,
-        temperature=0.5,
+        temperature=0.7,
         response_format={"type": "json_object"},
         messages=messages
     )
@@ -221,11 +215,11 @@ def check_web_browser(list_message: list, client: OpenAI, model):
 
     metadata = {
         "task": "generate_prompt",
-        "model": "gpt-4o",
+        "model": model,
         "usage": {
             "openAI": {"unit": "tokens/$",
-                       "input": num_tokens_from_string_openai(input_str, "gpt-4o"),
-                       "output": num_tokens_from_string_openai(response.choices[0].message.content, "gpt-4o"),
+                       "input": num_tokens_from_string_openai(input_str, model),
+                       "output": num_tokens_from_string_openai(response.choices[0].message.content, model),
                        "price": "https://openai.com/api/pricing/"
                        }
         }
@@ -255,7 +249,7 @@ User query input: {user_query}
     return user_prompt
 
 
-def num_tokens_from_string_openai(string: str, model_name: str) -> int:
+def num_tokens_from_string_openai(string: str, model_name: str = "gpt-4o-mini") -> int:
     encoding_name = "o200k_base"
     encoding = tiktoken.get_encoding(encoding_name)
     num_tokens = len(encoding.encode(string))
