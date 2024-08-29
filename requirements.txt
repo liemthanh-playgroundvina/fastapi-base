@@ -1,6 +1,7 @@
 alembic
 docstring_parser==0.7.3
 fastapi==0.95.0
+python-multipart
 passlib==1.7.4
 pydantic==1.10.18
 PyJWT==2.0.1
