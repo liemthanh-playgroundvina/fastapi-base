@@ -16,25 +16,33 @@ class ChatModel(BaseModel):
     temperature: float
     max_tokens: int
 
-    @validator('platform', 'model_name', 'temperature', 'max_tokens', pre=True, always=True)
-    def check_chat_model(cls, value, values, field):
-        if field.name == 'platform':
-            if value not in model_data:
-                raise CustomException(http_code=400, code='400', message=f"Unsupported platform '{value}'.")
-        if field.name == 'model_name':
-            platform = values.get('platform')
-            if platform and value not in model_data.get(platform, {}):
-                raise CustomException(http_code=400, code='400', message=f"Unsupported model '{value}' for platform '{platform}'.")
-        if field.name == 'temperature':
-            if not (0 <= value <= 1.0):
-                raise CustomException(http_code=400, code='400', message=f"Temperature must be between 0.0 and 1.0.")
-        if field.name == 'max_tokens':
-            platform = values.get('platform')
-            model_name = values.get('model_name')
-            if platform and model_name:
-                max_token_limit = model_data.get(platform, {}).get(model_name)
-                if not (256 <= value <= max_token_limit):
-                    raise CustomException(http_code=400, code='400', message=f"max_tokens must be between 256 and {max_token_limit}.")
+    @validator('platform')
+    def check_platform(cls, value):
+        if value not in model_data:
+            raise CustomException(http_code=400, code='400', message=f"Unsupported platform '{value}'.")
+        return value
+
+    @validator('model_name')
+    def check_model_name(cls, value, values):
+        platform = values.get('platform')
+        if platform and value not in model_data.get(platform, {}):
+            raise CustomException(http_code=400, code='400', message=f"Unsupported model '{value}' for platform '{platform}'.")
+        return value
+
+    @validator('temperature')
+    def check_temperature(cls, value):
+        if not (0 <= value <= 1.0):
+            raise CustomException(http_code=400, code='400', message=f"Temperature must be between 0.0 and 1.0.")
+        return value
+
+    @validator('max_tokens')
+    def check_max_tokens(cls, value, values):
+        platform = values.get('platform')
+        model_name = values.get('model_name')
+        if platform and model_name:
+            max_token_limit = model_data.get(platform, {}).get(model_name)
+            if not (256 <= value <= max_token_limit):
+                raise CustomException(http_code=400, code='400', message=f"max_tokens must be between 256 and {max_token_limit}.")
         return value
 
 class BaseChatRequest(BaseModel):
@@ -50,7 +58,7 @@ class BaseChatRequest(BaseModel):
 
     @root_validator(pre=True)
     def validate(cls, values):
-        cls.validate_messages(values['messages'])
+        cls.validate_messages(values.get('messages', []))
         chat_model = values.get('chat_model')
         if chat_model:
             ChatModel(**chat_model)
@@ -80,7 +88,7 @@ class ChatRequest(BaseChatRequest):
 
     @root_validator(pre=True)
     def validate(cls, values):
-        super().validate(values)
+        values = super().validate(values)  # Validate base class
         store_name = values.get('store_name', "")
         if store_name.strip() and store_name not in STORES:
             raise CustomException(http_code=400, code='400', message=f"Invalid store name '{store_name}'.")
@@ -116,5 +124,5 @@ class ChatVisionRequest(BaseChatRequest):
 
     @root_validator(pre=True)
     def validate(cls, values):
-        super().validate(values)
+        values = super().validate(values)  # Validate base class
         return values
