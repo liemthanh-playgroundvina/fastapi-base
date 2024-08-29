@@ -199,9 +199,10 @@ def check_web_browser(list_message: list, client: OpenAI, model):
     logging.getLogger('app').info(mess_str)
 
     # Model
+    client = OpenAI(api_key=settings.OPENAI_KEY)
     response = client.chat.completions.create(
-        model=model,
-        temperature=0.7,
+        model="gpt-4o",
+        temperature=0.5,
         response_format={"type": "json_object"},
         messages=messages
     )
