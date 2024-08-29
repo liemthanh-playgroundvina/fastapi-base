@@ -1,7 +1,7 @@
 import os
 import json
 from typing import List, Dict, Optional, Union
-from pydantic import BaseModel, root_validator
+from pydantic import BaseModel, root_validator, validator
 from app.core.config import settings
 from app.helpers.exception_handler import CustomException
 from app.helpers.llm.preprompts.store import STORES
@@ -16,19 +16,26 @@ class ChatModel(BaseModel):
     temperature: float
     max_tokens: int
 
-    def validate(self) -> None:
-        if self.platform not in model_data:
-            raise CustomException(http_code=400, code='400', message=f"Unsupported platform '{self.platform}'.")
-
-        if self.model_name not in model_data[self.platform]:
-            raise CustomException(http_code=400, code='400', message=f"Unsupported model '{self.model_name}' for platform '{self.platform}'.")
-
-        if not (0 <= self.temperature <= 1.0):
-            raise CustomException(http_code=400, code='400', message=f"Temperature must be between 0.0 and 1.0.")
-
-        max_token_limit = model_data[self.platform][self.model_name]
-        if not (256 <= self.max_tokens <= max_token_limit):
-            raise CustomException(http_code=400, code='400', message=f"max_tokens must be between 256 and {max_token_limit}.")
+    @validator('platform', 'model_name', 'temperature', 'max_tokens', pre=True, always=True)
+    def check_chat_model(cls, value, values, field):
+        if field.name == 'platform':
+            if value not in model_data:
+                raise CustomException(http_code=400, code='400', message=f"Unsupported platform '{value}'.")
+        if field.name == 'model_name':
+            platform = values.get('platform')
+            if platform and value not in model_data.get(platform, {}):
+                raise CustomException(http_code=400, code='400', message=f"Unsupported model '{value}' for platform '{platform}'.")
+        if field.name == 'temperature':
+            if not (0 <= value <= 1.0):
+                raise CustomException(http_code=400, code='400', message=f"Temperature must be between 0.0 and 1.0.")
+        if field.name == 'max_tokens':
+            platform = values.get('platform')
+            model_name = values.get('model_name')
+            if platform and model_name:
+                max_token_limit = model_data.get(platform, {}).get(model_name)
+                if not (256 <= value <= max_token_limit):
+                    raise CustomException(http_code=400, code='400', message=f"max_tokens must be between 256 and {max_token_limit}.")
+        return value
 
 class BaseChatRequest(BaseModel):
     messages: List[Dict[str, Union[str, List[Dict[str, Union[str, Dict[str, str]]]]]]]
@@ -44,8 +51,9 @@ class BaseChatRequest(BaseModel):
     @root_validator(pre=True)
     def validate(cls, values):
         cls.validate_messages(values['messages'])
-        chat_model = ChatModel(**values.get('chat_model', {}))
-        chat_model.validate()
+        chat_model = values.get('chat_model')
+        if chat_model:
+            ChatModel(**chat_model)
         return values
 
 class ChatRequest(BaseChatRequest):
