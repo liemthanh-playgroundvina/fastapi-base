@@ -23,21 +23,25 @@ build: load-env
 	@docker build -t $(DOCKER_HUB_URL)/$(NAME)-app:$(ENV) -f docker/Dockerfile/app .
 	@docker build -t $(DOCKER_HUB_URL)/$(NAME)-worker:$(ENV) -f docker/Dockerfile/worker .
 	@docker build -t $(DOCKER_HUB_URL)/$(NAME)-llm:$(ENV) -f docker/Dockerfile/llm .
+	@docker build -t $(DOCKER_HUB_URL)/$(NAME)-nginx:$(ENV) -f docker/Dockerfile/nginx .
 
 push: build
 	@docker push $(DOCKER_HUB_URL)/$(NAME)-app:$(ENV)
 	@docker push $(DOCKER_HUB_URL)/$(NAME)-worker:$(ENV)
 	@docker push $(DOCKER_HUB_URL)/$(NAME)-llm:$(ENV)
+	@docker push $(DOCKER_HUB_URL)/$(NAME)-nginx:$(ENV)
 
 pull: load-env
 	@docker pull $(DOCKER_HUB_URL)/$(NAME)-app:$(ENV)
 	@docker pull $(DOCKER_HUB_URL)/$(NAME)-worker:$(ENV)
 	@docker pull $(DOCKER_HUB_URL)/$(NAME)-llm:$(ENV)
+	@docker pull $(DOCKER_HUB_URL)/$(NAME)-nginx:$(ENV)
 
 clean: load-env
 	@docker rmi $(DOCKER_HUB_URL)/$(NAME)-app:$(ENV)
 	@docker rmi $(DOCKER_HUB_URL)/$(NAME)-worker:$(ENV)
 	@docker rmi $(DOCKER_HUB_URL)/$(NAME)-llm:$(ENV)
+	@docker rmi $(DOCKER_HUB_URL)/$(NAME)-nginx:$(ENV)
 
 # Run
 stop: load-env

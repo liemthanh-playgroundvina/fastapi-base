@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   nginx:
-    build: ../Dockerfile/nginx
+    image: ${DOCKER_HUB_URL}/${NAME}-nginx:${ENV}
     container_name: ${NAME}-${ENV}-nginx
     command: [ "./entrypoint.sh" ]
     expose:
