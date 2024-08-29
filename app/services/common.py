@@ -67,15 +67,23 @@ class CommonService(object):
         file_urls = []
         web_urls = []
 
-        file_pattern = re.compile(
+        storage_domain_pattern = re.compile(
             r'^https?://(.+\.)?(s3\.amazonaws\.com|storage\.googleapis\.com|blob\.core\.windows\.net|dropbox\.com|'
-            r'onedrive\.live\.com|box\.com|github\.com|digitaloceanspaces\.com|wasabisys\.com|backblazeb2\.com|.+\.(pdf|doc|docx|txt|xls|xlsx|csv|ppt|pptx|md|html|xml))$'
+            r'onedrive\.live\.com|box\.com|github\.com|digitaloceanspaces\.com|wasabisys\.com|backblazeb2\.com)$'
         )
+
+        file_extension_pattern = re.compile(
+            r'^.+\.(pdf|doc|docx|txt|xls|xlsx|csv|ppt|pptx|md|html|xml)$'
+        )
+
         web_pattern = re.compile(r'^https?://')
 
         for url in urls:
-            if file_pattern.match(url):
-                file_urls.append(url)
+            if storage_domain_pattern.match(url):
+                if file_extension_pattern.match(url):
+                    file_urls.append(url)
+                else:
+                    continue
             elif web_pattern.match(url):
                 web_urls.append(url)
 
