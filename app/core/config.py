@@ -22,6 +22,10 @@ class Settings(BaseSettings):
     LOGGING_APP_FILE = os.getenv("LOGGING_APP_FILE", "app.log")
     STATIC_URL = os.getenv("STATIC_URL", "static")
 
+    # Streaming
+    STREAM_DELAY=os.getenv("STREAM_DELAY", 0.1)
+    RETRY_TIMEOUT=os.getenv("RETRY_TIMEOUT", 15000)
+
     # Database
     DATABASE_URL = os.getenv('DATABASE_URL', '')
     SUPERUSER_NAME = os.getenv("SUPERUSER_NAME", "admin")
@@ -50,6 +54,19 @@ class Settings(BaseSettings):
     )
     QUEUE_TIMEOUT = os.getenv("QUEUE_TIMEOUT", 60*60)
     QUEUE_TIME_LIMIT = os.getenv("QUEUE_TIME_LIMIT", 5*60)
+
+    # LLM
+    LLM_URL = os.getenv("LLM_URL", "")
+    EM_URL = os.getenv("EM_URL", "")
+    VDB_URL = os.getenv("VDB_URL", "")
+
+    # OpenAI
+    OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
+
+    # Google Search
+    GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY", "")
+    GOOGLE_CSE_ID = os.getenv("GOOGLE_CSE_ID", "")
+
     # Other
 
 

@@ -26,7 +26,7 @@ class GoogleSearchService(object):
     __instance = None
 
     @staticmethod
-    def google_search(search_term, api_key, cse_id, **kwargs):
+    def google_search(search_term, api_key = settings.GOOGLE_API_KEY, cse_id = settings.GOOGLE_CSE_ID, **kwargs):
         service = build("customsearch", "v1", developerKey=api_key)
         res = service.cse().list(q=search_term, cx=cse_id, excludeTerms="youtube.com", **kwargs).execute()
         urls = [result["link"] for result in res['items']]

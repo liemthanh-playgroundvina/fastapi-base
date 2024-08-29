@@ -49,9 +49,7 @@ class ChatService(object):
 
 
 def chat_openai(request: dict):
-    logging.getLogger('app').info(
-        f"*** AI Center - Chat: {request['chat_model']['model_name']} ***")
-
+    logging.getLogger('app').info(f"*** Chatbot: {request['chat_model']['model_name']} ***")
     message_id = f"message_id_{datetime.utcnow().strftime('%Y%m%d%H%M%S%f')}"
 
     # Check host
@@ -92,8 +90,7 @@ def chat_openai(request: dict):
             "data": "[SEARCHING]",
         }
         question = f"{response['request']['query']} {response['request']['time']}"
-        urls = GoogleSearchService().google_search(question, settings.GOOGLE_API_KEY, settings.GOOGLE_CSE_ID,
-                             num=response['request']['num_link'])
+        urls = GoogleSearchService().google_search(question, num=response['request']['num_link'])
         messages[-1]['content'] = update_query_web_browsing(messages[-1]['content'], urls)
         yield {
             "event": "new_message",
@@ -229,7 +226,7 @@ Example for format GPT outputs:
     client = OpenAI(api_key=settings.OPENAI_KEY)
     response = client.chat.completions.create(
         model="gpt-4o",
-        temperature=0.5,
+        temperature=0.7,
         response_format={"type": "json_object"},
         messages=messages
     )
