@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  nginx:
+    build: ../Dockerfile/nginx
+    container_name: ${NAME}-${ENV}-nginx
+    command: [ "./entrypoint.sh" ]
+    expose:
+      - "443"
+    restart: always
+    env_file:
+      - .env
+    networks:
+      - net
+
+networks:
+  net:
+    name: ${NAME}-${ENV}-net

@@ -59,6 +59,7 @@ def chat_openai(request: dict):
     elif request['chat_model']["platform"] in ["local"]:
         client = OpenAI(
             base_url=settings.LLM_URL,
+            default_headers={"x-foo": "true"}
         )
         model = request['chat_model']['model_name']
     else:

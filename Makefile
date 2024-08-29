@@ -45,10 +45,12 @@ stop: load-env
 	@docker compose -f docker/$(ENV)/docker-compose.yml -p $(NAME)-$(ENV) down
 	@docker compose -f docker/$(ENV)/docker-compose.worker.yml -p $(NAME)-$(ENV) down
 	@docker compose -f docker/$(ENV)/docker-compose.services.yml -p $(NAME)-$(ENV) down
+	@docker compose -f docker/$(ENV)/docker-compose.nginx.yml -p $(NAME)-$(ENV) down
 
 start: stop
 	@docker compose -f docker/$(ENV)/docker-compose.yml -p $(NAME)-$(ENV) up -d
 	@docker compose -f docker/$(ENV)/docker-compose.worker.yml -p $(NAME)-$(ENV) up -d
 	@docker compose -f docker/$(ENV)/docker-compose.services.yml -p $(NAME)-$(ENV) up -d
+	@docker compose -f docker/$(ENV)/docker-compose.nginx.yml -p $(NAME)-$(ENV) up -d
 
 deploy: pull start
