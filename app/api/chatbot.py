@@ -128,7 +128,7 @@ def embed_doc(request: EmbedDocRequest = Body(...),
         for file in files:
             if file.content_type not in types:
                 message = f"Invalid file format. Only {types} type files are supported (current format is '{file.content_type}')"
-                raise CustomException(http_code=400, code='400', message=str(message))
+                raise ValueError(message)
 
         files_path = []
         for file in files:
@@ -142,7 +142,7 @@ def embed_doc(request: EmbedDocRequest = Body(...),
         # Handler both when empty
         if not files_path and not web_urls:
             message = "Don't find your [files, urls]. Please check your input."
-            raise CustomException(http_code=400, code='400', message=str(message))
+            raise ValueError(message)
 
         return ChatDocService().embed_doc(files_path, web_urls)
 
