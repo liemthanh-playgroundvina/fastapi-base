@@ -73,7 +73,7 @@ class CommonService(object):
         )
 
         file_extension_pattern = re.compile(
-            r'^.+\.(pdf|doc|docx|txt|xls|xlsx|csv|ppt|pptx|md|html|xml)$'
+            r'^https?://.+\.(pdf|doc|docx|txt|xls|xlsx|csv|ppt|pptx|md|html|xml)($|[?&])'
         )
 
         web_pattern = re.compile(r'^https?://')
