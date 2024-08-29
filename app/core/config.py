@@ -23,8 +23,8 @@ class Settings(BaseSettings):
     STATIC_URL = os.getenv("STATIC_URL", "static")
 
     # Streaming
-    STREAM_DELAY=os.getenv("STREAM_DELAY", 0.1)
-    RETRY_TIMEOUT=os.getenv("RETRY_TIMEOUT", 15000)
+    STREAM_DELAY=float(os.getenv("STREAM_DELAY", 0.1))
+    RETRY_TIMEOUT=int(os.getenv("RETRY_TIMEOUT", 15000))
 
     # Database
     DATABASE_URL = os.getenv('DATABASE_URL', '')
@@ -52,8 +52,8 @@ class Settings(BaseSettings):
         port=RABBITMQ_PORT,
         vhost=RABBITMQ_VHOST,
     )
-    QUEUE_TIMEOUT = os.getenv("QUEUE_TIMEOUT", 60*60)
-    QUEUE_TIME_LIMIT = os.getenv("QUEUE_TIME_LIMIT", 5*60)
+    QUEUE_TIMEOUT = int(os.getenv("QUEUE_TIMEOUT", 60*60))
+    QUEUE_TIME_LIMIT = int(os.getenv("QUEUE_TIME_LIMIT", 5*60))
 
     # LLM
     LLM_URL = os.getenv("LLM_URL", "")
