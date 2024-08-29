@@ -139,6 +139,11 @@ def embed_doc(request: EmbedDocRequest = Body(...),
         for url in file_urls:
             files_path.append(CommonService().save_url_file(url))
 
+        # Handler us when empty
+        if not files_path and not web_urls:
+            message = "Don't find your [files, urls]. Please check your input."
+            raise CustomException(http_code=400, code='400', message=str(message))
+
         return ChatDocService().embed_doc(files_path, web_urls)
 
     except ValueError as e:
