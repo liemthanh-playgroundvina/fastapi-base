@@ -5,7 +5,7 @@ from typing import Optional, Tuple, Text, Dict, List
 
 from app.helpers.exception_handler import CustomException
 from app.core.config import settings
-from app.helpers.llm.preprompts.store import get_system_prompt_follow_name
+from app.helpers.llm.preprompts.store import get_system_prompt_follow_name, check_web_browser_prompt
 from app.services.common import CommonService, GoogleSearchService
 
 from openai import OpenAI
@@ -78,7 +78,7 @@ def chat_openai(request: dict):
     # Check check_web_browser
     logging.getLogger('app').info("-- CHECK MODE WEB SEARCH:")
 
-    response, res_metadata = check_web_browser(messages[1:], client)
+    response, res_metadata = check_web_browser(messages[1:], client, model)
     logging.getLogger('app').info(str(response))
 
     if response['web_browser_mode']:
@@ -175,43 +175,16 @@ def chat_openai(request: dict):
     }
 
 
-def check_web_browser(list_message: list, client: OpenAI):
+def check_web_browser(list_message: list, client: OpenAI, model):
     """Using OpenAI check query need using web browser or not"""
 
-    # System prompt
-    system_prompt = f"""You are a GPT, a large language model created by PlayGround.
-Knowledge cutoff: 10/2023
-Current date: {datetime.now().strftime("%d/%m/%Y %H:%M:%S")} with (dd/mm/yyyy h:m:s) format"""
-    system_prompt += """
-You are a checker query for Web Browser tool from user query input. Web browser mode will enable in the following circumstances:
-- User is asking about current events or something that requires real-time information (weather, sports scores, etc.)
-- User is asking about some term you are totally unfamiliar with (it might be new)
-- User explicitly asks you to browse or provide links to references
-
-The format json output include:
-- web_browser_mode (bool): true when web browser mode enable
-- request (dict): is {} when web_browser_mode is false. When web_browser_mode is true, it's required:
-    + query (str): is user query input. Query must optimized can be search Google Search. Time cannot appear in the query. 
-    + time (str): is the time mentioned in the query input starting from the current time with dd/mm/yyyy format (day and month can null). Time is '' if user query input does not mention time.
-    + num_link (int): The number of reference links requested by the user, default is 3.
-
-Example for format GPT outputs:
-{
-    "web_browser_mode": true,
-    "request": {
-        "query": "Event",
-        "time": "20/10/2020",
-        "num_link": 3
-    } 
-}
-"""
     # User prompt
     messages_str = ""
     for messa in list_message:
         messages_str += "\n" + json.dumps(messa, ensure_ascii=False)
     user_prompt = f"""Check mode with user query input is: \n{messages_str}\n"""
     messages = [
-        {"role": "system", "content": system_prompt},
+        {"role": "system", "content": check_web_browser_prompt()},
         {"role": "user", "content": user_prompt}
     ]
 
@@ -224,7 +197,7 @@ Example for format GPT outputs:
 
     # Model
     response = client.chat.completions.create(
-        model="gpt-4o",
+        model=model,
         temperature=0.7,
         response_format={"type": "json_object"},
         messages=messages
