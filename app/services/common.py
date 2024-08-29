@@ -73,19 +73,16 @@ class CommonService(object):
         )
 
         file_extension_pattern = re.compile(
-            r'^https?://.+\.(pdf|doc|docx|txt|xls|xlsx|csv|ppt|pptx|md|html|xml)($|[?&])'
+            r'.+\.(pdf|doc|docx|txt|xls|xlsx|csv|ppt|pptx|md|html|xml)$'
         )
-
-        web_pattern = re.compile(r'^https?://')
 
         for url in urls:
             if storage_domain_pattern.match(url):
-                if file_extension_pattern.match(url):
+                if file_extension_pattern.search(url):
                     file_urls.append(url)
-                else:
-                    continue
-            elif web_pattern.match(url):
-                web_urls.append(url)
+            else:
+                if url.startswith("http://") or url.startswith("https://"):
+                    web_urls.append(url)
 
         return file_urls, web_urls
 
