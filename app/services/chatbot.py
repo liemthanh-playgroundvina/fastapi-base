@@ -199,7 +199,7 @@ def check_web_browser(list_message: list, client: OpenAI, model):
     logging.getLogger('app').info(mess_str)
 
     # Model
-    client = OpenAI(api_key=settings.OPENAI_KEY)
+    client = OpenAI(api_key=settings.OPENAI_API_KEY)
     response = client.chat.completions.create(
         model="gpt-4o",
         temperature=0.5,
