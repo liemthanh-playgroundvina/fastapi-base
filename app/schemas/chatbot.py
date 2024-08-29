@@ -129,7 +129,7 @@ class ChatVisionRequest(BaseChatRequest):
 
 
 class EmbedDocRequest(BaseModel):
-    urls: Optional[List[str]]
+    urls: Optional[List[str]] = []
 
     class Config:
         schema_extra = {
