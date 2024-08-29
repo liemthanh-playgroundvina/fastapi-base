@@ -54,7 +54,7 @@ def chat_openai(request: dict):
 
     # Check host
     if request['chat_model']["platform"] in ["OpenAI"]:
-        client = OpenAI(api_key=settings.OPENAI_KEY)
+        client = OpenAI(api_key=settings.OPENAI_API_KEY)
         model = request['chat_model']['model_name']
     elif request['chat_model']["platform"] in ["local"]:
         client = OpenAI(
