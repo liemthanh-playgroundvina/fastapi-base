@@ -1,4 +1,5 @@
 import json
+import httpx
 import logging
 from datetime import datetime
 from typing import Optional, Tuple, Text, Dict, List
@@ -59,7 +60,8 @@ def chat_openai(request: dict):
     elif request['chat_model']["platform"] in ["local"]:
         client = OpenAI(
             base_url=settings.LLM_URL,
-            default_headers={"x-foo": "true"}
+            default_headers={"x-foo": "true"},
+            http_client=httpx.Client(verify=False)
         )
         model = request['chat_model']['model_name']
     else:

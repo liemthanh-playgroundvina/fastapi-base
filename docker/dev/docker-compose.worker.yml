@@ -5,7 +5,7 @@ services:
   worker:
     image: ${DOCKER_HUB_URL}/${NAME}-worker:${ENV}
     container_name: ${NAME}-${ENV}-worker
-    command: [ "scripts/entrypoint.worker.sh" ]
+    command: celery -A worker.router worker -Q "${WORKER_NAME}" --loglevel=info --pool=eventlet --concurrency=5 -E --logfile=logs/celery.log
     restart: always
     depends_on:
       - redis
