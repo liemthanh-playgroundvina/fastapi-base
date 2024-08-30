@@ -1,13 +1,17 @@
+import json
 import logging
 from typing import Optional, List, Any
 
-from fastapi import APIRouter, Depends, HTTPException, File, UploadFile, Request, Body
+from fastapi import APIRouter, Depends, HTTPException, File, UploadFile, Request, Body, BackgroundTasks
 
+from app.core.config import settings
 from app.helpers.exception_handler import CustomException
 from app.helpers.login_manager import login_required, PermissionRequired
+from app.mq_main import redis
 from app.schemas.base import DataResponse
 
 from app.schemas.chatbot import ChatRequest, ChatVisionRequest, EmbedDocRequest
+from app.schemas.queue import QueueResponse
 from app.services.chatbot import ChatService
 from app.services.chatdoc import ChatDocService
 from app.services.common import CommonService
@@ -95,12 +99,14 @@ def chat_vision(request: ChatVisionRequest) -> Any:
 
 
 @router.post(
-    "/chat-doc/embed",
+    "/chat-doc/embed/queue",
     dependencies=[Depends(login_required)],
     # response_model=DataResponse[]
 )
-def embed_doc(request: EmbedDocRequest = Body(...),
-              files: Optional[List[UploadFile]] = File(None)) -> Any:
+def embed_doc_queue(
+        bg_task: BackgroundTasks,
+        request: EmbedDocRequest = Body(...),
+        files: Optional[List[UploadFile]] = File(None)) -> Any:
     """
     API Embed Document for Chat Document
 
@@ -132,19 +138,22 @@ def embed_doc(request: EmbedDocRequest = Body(...),
 
         files_path = []
         for file in files:
-            files_path.append(CommonService().save_upload_file(file))
+            files_path.append(CommonService().save_upload_file(file, save_directory=settings.WORKER_DIRECTORY))
 
         # Handler urls
         file_urls, web_urls = CommonService().classify_urls(request.urls)
         for url in file_urls:
-            files_path.append(CommonService().save_url_file(url))
+            files_path.append(CommonService().save_url_file(url, save_directory=settings.WORKER_DIRECTORY))
 
         # Handler both when empty
         if not files_path and not web_urls:
             message = "Don't find your [files, urls]. Please check your input."
             raise ValueError(message)
 
-        return ChatDocService().embed_doc(files_path, web_urls)
+        utc_now, task_id, data = CommonService().init_task_queue()
+        redis.set(task_id, json.dumps(data.__dict__))
+        bg_task.add_task(ChatDocService.embed_doc_queue, task_id, data, web_urls, files_path)
+        return DataResponse().success_response(data=QueueResponse(status="PENDING", time=utc_now, task_id=task_id))
 
     except ValueError as e:
         raise CustomException(http_code=400, code='400', message=str(e))

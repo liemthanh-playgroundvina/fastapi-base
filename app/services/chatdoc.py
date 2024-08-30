@@ -1,10 +1,44 @@
+import json
+import inspect
+import logging
+
+from app.core.config import settings
+from app.mq_main import celery_execute, redis
 from app.schemas.base import DataResponse
+from app.schemas.queue import QueueResult
 
 
 class ChatDocService(object):
     __instance = None
 
     @staticmethod
-    def embed_doc(files_path: list, web_urls: list):
-        response = {"files_path": files_path, "web_urls": web_urls}
-        return DataResponse().success_response(data=response)
+    def embed_doc_queue(task_id: str, data: QueueResult,
+                          web_urls: list, files_path: list):
+        try:
+
+            data_dump = json.dumps(data.__dict__)
+            request = json.dumps({"files_path": files_path, "web_urls": web_urls})
+            # Send task
+            celery_execute.send_task(
+                name="{worker}.{task}".format(
+                    worker=settings.WORKER_NAME,
+                    task=inspect.currentframe().f_code.co_name.replace("_queue", "")
+                ),
+                kwargs={
+                    'task_id': task_id,
+                    'data': data_dump,
+                    'request': request,
+                },
+                queue=settings.WORKER_NAME
+            )
+        except ValueError as e:
+            logging.getLogger('app').debug(e, exc_info=True)
+            data.status['general_status'] = "FAILED"
+            data.error = {'code': "400", 'message': str(e)}
+            redis.set(task_id, json.dumps(data.__dict__))
+
+        except Exception as e:
+            logging.getLogger('app').debug(e, exc_info=True)
+            data.status['general_status'] = "FAILED"
+            data.error = {'code': "500", 'message': "Internal Server Error"}
+            redis.set(task_id, json.dumps(data.__dict__))

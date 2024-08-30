@@ -1,3 +1,4 @@
+import inspect
 import json
 import logging
 
@@ -42,7 +43,10 @@ class HealthCheckServices(object):
             data_dump = json.dumps(data.__dict__)
             # Send task
             celery_execute.send_task(
-                name=f"{settings.WORKER_NAME}.healthcheck",
+                name="{worker}.{task}".format(
+                    worker=settings.WORKER_NAME,
+                    task=inspect.currentframe().f_code.co_name.replace("_queue", "")
+                ),
                 kwargs={
                     'task_id': task_id,
                     'data': data_dump,
