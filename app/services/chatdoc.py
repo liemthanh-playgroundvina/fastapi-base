@@ -7,9 +7,17 @@ from app.mq_main import celery_execute, redis
 from app.schemas.base import DataResponse
 from app.schemas.queue import QueueResult
 
+from sse_starlette import EventSourceResponse
+
 
 class ChatDocService(object):
     __instance = None
+
+    @staticmethod
+    def chat_doc_lc(request, web_urls: list, files_path: list):
+        return DataResponse().success_response(data=[request, web_urls, files_path])
+
+        # return EventSourceResponse(chat_doc_lc_openai(request))
 
     @staticmethod
     def embed_doc_queue(task_id: str, data: QueueResult,

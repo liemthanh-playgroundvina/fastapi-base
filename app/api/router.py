@@ -7,7 +7,9 @@ from app.api import (
     user,
     queue,
 
-    chatbot
+    chatbot,
+    chatdoc,
+
 )
 
 router = APIRouter()
@@ -20,3 +22,4 @@ router.include_router(queue.router, tags=["queue"], prefix="/queue")
 
 # Chatbot
 router.include_router(chatbot.router, tags=["chatbot"], prefix="/chatbot")
+router.include_router(chatdoc.router, tags=["chatdoc"], prefix="/chatdoc")
