@@ -3,7 +3,7 @@ FROM nvidia/cuda:11.8.0-cudnn8-devel-ubuntu20.04 as cuda-base
 
 FROM python:3.9 as builder
 WORKDIR /app
-RUN python3 -m pip install --upgrade pip pytest cmake scikit-build setuptools fastapi uvicorn sse-starlette pydantic-settings starlette-context huggingface-hub
+RUN pip install --user --no-cache-dir pytest cmake scikit-build setuptools fastapi uvicorn sse-starlette pydantic-settings starlette-context huggingface-hub
 
 
 FROM python:3.9-slim
