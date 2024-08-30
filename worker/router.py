@@ -8,6 +8,8 @@ if not is_broker_running():
 
 app.conf.task_routes = {
     'tasks.healthcheck_task': {'queue': settings.WORKER_NAME},
+    'tasks.embed_doc_task': {'queue': settings.WORKER_NAME},
 }
 
 from worker.tasks.healthcheck import healthcheck_task
+from worker.tasks.embed_doc import embed_doc_task
