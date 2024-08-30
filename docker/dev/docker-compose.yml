@@ -11,6 +11,9 @@ services:
     restart: unless-stopped
     depends_on:
       - alembic
+    volumes:
+      - volume-app-log:/app/logs
+      - volume-app-worker-shared:/app/${STATIC_URL}/${WORKER_DIRECTORY}
     env_file:
       - .env
     networks:
@@ -41,10 +44,16 @@ services:
        - POSTGRES_DB=${POSTGRES_DB}
      volumes:
        - volume-db:/var/lib/postgresql/data
+     env_file:
+       - .env
      networks:
        - net
 
 volumes:
+  volume-app-log:
+    name: ${NAME}-${ENV}-app-log-data
+  volume-app-worker-shared:
+    name: ${NAME}-${ENV}-app-worker-shared-data
   volume-db:
     name: ${NAME}-${ENV}-db-data
 

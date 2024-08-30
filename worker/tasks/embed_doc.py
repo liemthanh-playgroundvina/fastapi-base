@@ -31,7 +31,7 @@ def embed_doc_task(self, task_id: str, data: bytes, request: bytes):
                  "web_urls": []
             }
     """
-    print(f"============= {inspect.currentframe().f_code.co_name} - {task_id}: Started ===================")
+    print(f"============= [{task_id}]{inspect.currentframe().f_code.co_name} : Started ===================")
     try:
         # Load data
         data = json.loads(data)

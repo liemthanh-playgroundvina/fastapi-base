@@ -1,5 +1,7 @@
+import inspect
 import logging
 import json
+import os
 
 from app.core.config import settings
 
@@ -15,13 +17,16 @@ from amqp.exceptions import PreconditionFailed
     base=BaseTask,
     soft_time_limit=float(settings.QUEUE_TIME_LIMIT),
     time_limit=float(settings.QUEUE_TIME_LIMIT) + 20,
-    name=f"{settings.WORKER_NAME}.healthcheck",
+    name="{worker}.{task}".format(
+        worker=settings.WORKER_NAME,
+        task=os.path.basename(__file__).replace(".py", "")
+    ),
     queue=settings.WORKER_NAME
 )
 def healthcheck_task(self, task_id: str, data: bytes):
     """
     """
-    print(f"============= HealthCheck task {task_id}: Started ===================")
+    print(f"============= [{task_id}]{inspect.currentframe().f_code.co_name} : Started ===================")
     try:
         # Load data
         data = json.loads(data)
@@ -39,10 +44,11 @@ def healthcheck_task(self, task_id: str, data: bytes):
         }
 
         # Successful
+        data_response = {"healthcheck": True, 'gpu': gpus}
         metadata = {
-            "task": "healthcheck",
+            "task": inspect.currentframe().f_code.co_name.replace("_queue", ""),
         }
-        response = {"data": {"healthcheck": True, 'gpu': gpus}, "metadata": metadata}
+        response = {"data": data_response, "metadata": metadata}
         TaskStatusManager.success(task_id, data, response)
         return
 

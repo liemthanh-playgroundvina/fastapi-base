@@ -10,6 +10,9 @@ services:
     depends_on:
       - redis
       - rabbitmq
+    volumes:
+      - volume-worker-log:/app/logs
+      - volume-app-worker-shared:/app/${STATIC_URL}/${WORKER_DIRECTORY}
     env_file:
       - .env
     deploy:
@@ -56,6 +59,10 @@ services:
       - net
 
 volumes:
+  volume-worker-log:
+    name: ${NAME}-${ENV}-worker-log-data
+  volume-app-worker-shared:
+    name: ${NAME}-${ENV}-app-worker-shared-data
   volume-redis:
     name: ${NAME}-${ENV}-redis-data
   volume-rabbitmq:
