@@ -13,7 +13,7 @@ services:
       - alembic
     volumes:
       - volume-app-log:/app/logs
-      - volume-app-worker-shared:/app/${STATIC_URL}/${WORKER_DIRECTORY}
+      - volume-app-worker-shared:/app/${WORKER_DIRECTORY}
     env_file:
       - .env
     networks:
