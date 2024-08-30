@@ -31,6 +31,7 @@ def chat_doc_lc(
     Chat Document using Long Context
 
     Params:
+
         - files: pdf|doc|docx|txt|xls|xlsx|csv|ppt|pptx|md|html|xml
         - messages (list): Message of user
         - chat_model (dict):
@@ -106,6 +107,7 @@ def embed_doc_queue(
     API Embed Document for Chat Document
 
     Params:
+
         files: pdf|doc|docx|txt|xls|xlsx|csv|ppt|pptx|md|html|xml
         urls (list): [file, web].
             - file: pdf|doc|docx|txt|xls|xlsx|csv|ppt|pptx|md|html|xml
