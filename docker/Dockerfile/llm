@@ -24,6 +24,8 @@ RUN apt-get update && apt-get install -y \
 
 WORKDIR /app
 
+RUN CMAKE_ARGS="-DGGML_CUDA=on" pip install llama-cpp-python
+
 # Lib
 COPY --from=builder /root/.local /root/.local
 
