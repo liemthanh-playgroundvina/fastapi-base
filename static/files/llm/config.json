@@ -22,9 +22,9 @@
       "model": "/models/qwen2-7b-instruct-q4_k_m.gguf",
       "model_alias": "qwen2-7b",
       "chat_format": "qwen",
-      "n_ctx": 128000,
+      "n_ctx": 32768,
       "n_threads": 4,
-      "n_gpu_layers": 35,
+      "n_gpu_layers": 0,
       "offload_kqv": true,
       "flash_attn": true
     }
