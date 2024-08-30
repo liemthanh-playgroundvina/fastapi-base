@@ -43,7 +43,7 @@ def embed_doc_task(self, task_id: str, data: bytes, request: bytes):
 
         # Successful
         metadata = {
-            "task": inspect.currentframe().f_code.co_name.replace("_queue", ""),
+            "task": inspect.currentframe().f_code.co_name.replace("_task", ""),
         }
         response = {"data": request, "metadata": metadata}
         TaskStatusManager.success(task_id, data, response)

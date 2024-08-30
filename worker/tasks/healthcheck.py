@@ -46,7 +46,7 @@ def healthcheck_task(self, task_id: str, data: bytes):
         # Successful
         data_response = {"healthcheck": True, 'gpu': gpus}
         metadata = {
-            "task": inspect.currentframe().f_code.co_name.replace("_queue", ""),
+            "task": inspect.currentframe().f_code.co_name.replace("_task", ""),
         }
         response = {"data": data_response, "metadata": metadata}
         TaskStatusManager.success(task_id, data, response)

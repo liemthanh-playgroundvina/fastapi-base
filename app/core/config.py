@@ -54,9 +54,10 @@ class Settings(BaseSettings):
     )
     QUEUE_TIMEOUT = int(os.getenv("QUEUE_TIMEOUT", 60*60))
     QUEUE_TIME_LIMIT = int(os.getenv("QUEUE_TIME_LIMIT", 5*60))
+    WORKER_DIRECTORY = os.getenv("WORKER_DIRECTORY", "worker")
     WORKER_DIRECTORY = '{static}/{worker}'.format(
         static=STATIC_URL,
-        worker=os.getenv("WORKER_DIRECTORY", "worker")
+        worker=WORKER_DIRECTORY
     )
 
     # LLM
