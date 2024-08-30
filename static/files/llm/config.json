@@ -24,7 +24,7 @@
       "chat_format": "qwen",
       "n_ctx": 32768,
       "n_threads": 4,
-      "n_gpu_layers": 0,
+      "n_gpu_layers": 35,
       "offload_kqv": true,
       "flash_attn": true
     }
