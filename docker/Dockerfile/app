@@ -11,6 +11,12 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PATH=/root/.local/bin:$PATH
 
+RUN apt-get update && apt-get install -y \
+    libmagic-dev poppler-utils tesseract-ocr libreoffice \
+    && apt-get clean autoclean \
+    && apt-get autoremove --yes \
+    && rm -rf /var/lib/{apt,dpkg,cache,log}/
+
 WORKDIR /app
 
 COPY --from=builder /root/.local /root/.local

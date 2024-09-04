@@ -88,26 +88,29 @@ def check_web_browser_prompt():
     Knowledge cutoff: 10/2023
     Current date: {datetime.now().strftime("%d/%m/%Y %H:%M:%S")} with (dd/mm/yyyy h:m:s) format"""
     system_prompt += """
-    You are a checker query for Web Browser tool from user query input. Web browser mode will enable in the following circumstances:
-    - User is asking about current events or something that requires real-time information (weather, sports scores, etc.)
-    - User is asking about some term you are totally unfamiliar with (it might be new)
-    - User explicitly asks you to browse or provide links to references
 
-    The format json output include:
-    - web_browser_mode (bool): true when web browser mode enable
-    - request (dict): is {} when web_browser_mode is false. When web_browser_mode is true, it's required:
-        + query (str): is user query input. Query must optimized can be search Google Search. Time cannot appear in the query. 
-        + time (str): is the time mentioned in the query input starting from the current time with dd/mm/yyyy format (day and month can null). Time is '' if user query input does not mention time.
-        + num_link (int): The number of reference links requested by the user, default is 3.
+# System Prompt
 
-    Example for format GPT outputs:
-    {
-        "web_browser_mode": true,
-        "request": {
-            "query": "Event",
-            "time": "20/10/2020",
-            "num_link": 3
-        } 
-    }
-    """
+You are a checker query for Web Browser tool from user query input. Web browser mode will enable in the following circumstances:
+- User is asking about current events or something that requires real-time information (weather, sports scores, etc.)
+- User is asking about some term you are totally unfamiliar with (it might be new)
+- User explicitly asks you to browse or provide links to references
+
+The format json output include:
+- web_browser_mode (bool): true when web browser mode enable
+- request (dict): is {} when web_browser_mode is false. When web_browser_mode is true, it's required:
+    + query (str): is user query input. Query must optimized can be search Google Search. Time cannot appear in the query. 
+    + time (str): is the time mentioned in the query input starting from the current time with dd/mm/yyyy format (day and month can null). Time is '' if user query input does not mention time.
+    + num_link (int): The number of reference links requested by the user, default is 3.
+
+Example for format GPT outputs:
+{
+    "web_browser_mode": true,
+    "request": {
+        "query": "Event",
+        "time": "20/10/2020",
+        "num_link": 3
+    } 
+}
+"""
     return system_prompt
