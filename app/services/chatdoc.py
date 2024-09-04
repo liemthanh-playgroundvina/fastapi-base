@@ -18,8 +18,9 @@ class ChatDocService(object):
     def chat_doc_lc(request, web_urls: list, files_path: list):
         # Load file/url
         docs = DocumentLoaderService().loaders(files_path, web_urls)
+        docs = DocumentLoaderService().cleaners(docs)
+
         mds = DocumentLoaderService.docs_to_markdowns(docs)
-        # elements = DocumentLoaderService().cleaner(elements)
 
         return DataResponse().success_response(data=[docs, mds])
 

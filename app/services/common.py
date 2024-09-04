@@ -236,6 +236,12 @@ class DocumentLoaderService(object):
         return elements
 
     @staticmethod
+    def cleaners(docs):
+        for i, doc in enumerate(docs):
+            docs[i] = DocumentLoaderService().cleaner(doc)
+        return docs
+
+    @staticmethod
     def iter_markdown_lines(elements) -> Iterator[str]:
         for e in elements:
             if e.category == "Title":
@@ -249,6 +255,12 @@ class DocumentLoaderService(object):
     def docs_to_markdowns(docs):
         markdowns = []
         for doc in docs:
-            markdowns.append(DocumentLoaderService().iter_markdown_lines(doc))
-
+            markdown = f"""**Metadata**
+- Filename/URL: {doc[0].url or doc[0].filename}
+- Date created: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
+**Context**
+"""
+            markdown += DocumentLoaderService().iter_markdown_lines(doc)
+            markdown += "\n---\n\n"
+            markdowns.append(markdown)
         return markdowns
