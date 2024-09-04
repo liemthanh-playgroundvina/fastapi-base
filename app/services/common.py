@@ -200,15 +200,13 @@ class DocumentLoaderService(object):
 
     @staticmethod
     def loaders(files_path: list, web_urls: list):
-        elements = []
+        docs = []
         for web_url in web_urls:
-            elements.append(DocumentLoaderService().loader(web_url=web_url))
+            docs.append(DocumentLoaderService().loader(web_url=web_url))
         for file_path in files_path:
-            elements.append(DocumentLoaderService().loader(file_path=file_path))
+            docs.append(DocumentLoaderService().loader(file_path=file_path))
 
-        elements = list(itertools.chain(*elements))
-
-        return elements
+        return docs
 
     @staticmethod
     def cleaner(elements):
@@ -246,3 +244,9 @@ class DocumentLoaderService(object):
                 yield f"- {e.text}"
             else:
                 yield e.text
+
+    @staticmethod
+    def docs_to_markdowns(docs):
+        markdowns = []
+        for doc in docs:
+            markdowns.append(DocumentLoaderService().iter_markdown_lines(doc))
