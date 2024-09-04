@@ -1,4 +1,3 @@
-import itertools
 import os
 import uuid
 import mimetypes
@@ -232,7 +231,16 @@ class DocumentLoaderService(object):
         )
         elements_cleaned = []
         for e in elements:
-            elements_cleaned.append(e.apply(clean_extra_whitespace))
+            e_cleaned = (e.apply(clean_non_ascii_chars)
+                         .apply(clean_ligatures)
+                         .apply(group_bullet_paragraph)
+                         .apply(group_broken_paragraphs)
+                         .apply(replace_unicode_quotes)
+                         .apply(replace_mime_encodings)
+                         .apply(bytes_string_to_string)
+                         .apply(clean_extra_whitespace)
+            )
+            elements_cleaned.append(e_cleaned)
         return elements_cleaned
 
 

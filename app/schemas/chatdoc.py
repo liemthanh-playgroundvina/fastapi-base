@@ -1,62 +1,31 @@
 import json
 from typing import List, Dict, Optional, Union
 from pydantic import BaseModel, root_validator, validator
+from app.helpers.exception_handler import CustomException
 
-from app.schemas.chatbot import BaseChatRequest
 
-class ChatDocLCRequest(BaseChatRequest):
+class EmbedDocRequest(BaseModel):
+    chat_type: str
     urls: Optional[List[str]] = []
 
     class Config:
         schema_extra = {
             "example": {
+                "chat_type": "lc",
                 "urls": [
                     "https://aiservices-bucket.s3.amazonaws.com/chat-vision/screen.jpg",
                     "https://python.langchain.com/v0.2/docs/how_to/#document-loaders"
                 ],
-                "messages": [
-                    {"role": "system", "content": "You are an assistant."},
-                    {"role": "user", "content": "Xin chào"},
-                    {"role": "assistant", "content": "Chào bạn. Tôi có thể giúp gì cho bạn?"},
-                    {"role": "user", "content": "Tóm tắt văn bản đã đưa"},
-                ],
-                "chat_model": {
-                    "platform": "local",
-                    "model_name": "qwen2-7b",
-                    "temperature": 0.7,
-                    "max_tokens": 2048,
-                },
             }
         }
 
     @root_validator(pre=True)
     def validate(cls, values):
-        values = super().validate(values)
+        chat_type = values.get('chat_type', "")
+        types = ['lc', 'rag']
+        if chat_type.strip() not in types:
+            raise CustomException(http_code=400, code='400', message=f"Invalid chat type '{chat_type}'.")
         return values
-
-    @classmethod
-    def __get_validators__(cls):
-        yield cls.validate_to_json
-
-    @classmethod
-    def validate_to_json(cls, value):
-        if isinstance(value, str):
-            return cls(**json.loads(value))
-        return value
-
-
-class EmbedDocRequest(BaseModel):
-    urls: Optional[List[str]] = []
-
-    class Config:
-        schema_extra = {
-            "example": {
-                "urls": [
-                    "https://aiservices-bucket.s3.amazonaws.com/chat-vision/screen.jpg",
-                    "https://python.langchain.com/v0.2/docs/how_to/#document-loaders"
-                ],
-            }
-        }
 
     @classmethod
     def __get_validators__(cls):
