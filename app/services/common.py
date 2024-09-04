@@ -6,7 +6,7 @@ import mimetypes
 import uuid
 import requests
 from datetime import datetime
-from typing import List, Dict, Tuple
+from typing import List, Dict, Tuple, Iterator
 import re
 from fastapi import UploadFile
 from urllib.parse import urlparse
@@ -233,7 +233,16 @@ class DocumentLoaderService(object):
             clean_extra_whitespace,
         )
 
-
         for i, element in enumerate(elements):
             elements[i] = element.apply(clean_extra_whitespace)
         return elements
+
+    @staticmethod
+    def iter_markdown_lines(elements) -> Iterator[str]:
+        for e in elements:
+            if e.category == "Title":
+                yield f"# {e.text}"
+            elif e.category == "ListItem":
+                yield f"- {e.text}"
+            else:
+                yield e.text

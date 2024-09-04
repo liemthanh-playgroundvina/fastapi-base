@@ -18,9 +18,10 @@ class ChatDocService(object):
     def chat_doc_lc(request, web_urls: list, files_path: list):
         # Load file/url
         elements = DocumentLoaderService().loaders(files_path, web_urls)
+        md = "\n".join(DocumentLoaderService().iter_markdown_lines(elements))
         # elements = DocumentLoaderService().cleaner(elements)
 
-        return DataResponse().success_response(data=elements)
+        return DataResponse().success_response(data=md)
 
         # return EventSourceResponse(chat_doc_lc_openai(request))
 
