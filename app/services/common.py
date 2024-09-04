@@ -138,7 +138,7 @@ class DocumentLoaderService(object):
     def loader(file_path = None, web_url = None, **kwargs):
         # https://docs.unstructured.io/open-source/core-functionality/partitioning
         from unstructured.partition import (
-            csv, email, epub, xlsx, html, image, md, org, odt, pdf, text, ppt, pptx, rst,
+            csv, email, msg, epub, xlsx, html, image, md, org, odt, pdf, text, ppt, pptx, rst,
             rtf, tsv, doc, docx, xml
         )
         from unstructured.partition.auto import partition
@@ -146,7 +146,7 @@ class DocumentLoaderService(object):
         partition_map = {
             csv.partition_csv: ['text/csv'],
             email.partition_email: ['message/rfc822'],
-            email.partition_msg: ['application/vnd.ms-outlook'],
+            msg.partition_msg: ['application/vnd.ms-outlook'],
             epub.partition_epub: ['application/epub+zip'],
             xlsx.partition_xlsx: [
                 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
