@@ -230,16 +230,18 @@ class DocumentLoaderService(object):
             bytes_string_to_string,
             clean_extra_whitespace,
         )
+        elements_cleaned = []
+        for e in elements:
+            elements_cleaned.append(e.apply(clean_extra_whitespace))
+        return elements_cleaned
 
-        for i, element in enumerate(elements):
-            elements[i] = element.apply(clean_extra_whitespace)
-        return elements
 
     @staticmethod
     def cleaners(docs):
-        for i, doc in enumerate(docs):
-            docs[i] = DocumentLoaderService().cleaner(doc)
-        return docs
+        docs_cleaned = []
+        for doc in docs:
+            docs_cleaned.append(DocumentLoaderService().cleaner(doc))
+        return docs_cleaned
 
     @staticmethod
     def iter_markdown_lines(elements) -> Iterator[str]:
