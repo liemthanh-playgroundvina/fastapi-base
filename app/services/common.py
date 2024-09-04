@@ -1,5 +1,6 @@
 import os
 import uuid
+import mimetypes
 
 import uuid
 import requests
@@ -42,6 +43,13 @@ class CommonService(object):
             f.write(file.file.read())
 
         return file_path
+
+    @staticmethod
+    def detect_content_type(file_path):
+        """Detect MIME type based on file extension."""
+
+        content_type, _ = mimetypes.guess_type(file_path)
+        return content_type
 
     @staticmethod
     def save_url_file(file_url: str, save_directory: str = f"{settings.STATIC_URL}/uploads") -> str:
@@ -117,3 +125,72 @@ class GoogleSearchService(object):
 
         return texts
 
+
+class DocumentLoaderService(object):
+    __instance = None
+
+    def __new__(cls, *args, **kwargs):
+        if cls.__instance is None:
+            cls.__instance = super(DocumentLoaderService, cls).__new__(cls)
+        return cls.__instance
+
+    @staticmethod
+    def loader(file_path = None, web_url = None, **kwargs):
+        # https://docs.unstructured.io/open-source/core-functionality/partitioning
+        from unstructured.partition import (
+            csv, email, epub, xlsx, html, image, md, org, odt, pdf, text, ppt, pptx, rst,
+            rtf, tsv, doc, docx, xml
+        )
+        from unstructured.partition.auto import partition
+
+        partition_map = {
+            csv.partition_csv: ['text/csv'],
+            email.partition_email: ['message/rfc822'],
+            email.partition_msg: ['application/vnd.ms-outlook'],
+            epub.partition_epub: ['application/epub+zip'],
+            xlsx.partition_xlsx: [
+                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                'application/vnd.ms-excel'
+            ],
+            html.partition_html: ['text/html'],
+            image.partition_image: [
+                'image/png', 'image/jpeg', 'image/jpg',
+                'image/tiff', 'image/bmp', 'image/heic'
+            ],
+            md.partition_md: ['text/markdown'],
+            org.partition_org: ['text/org'],
+            odt.partition_odt: ['application/vnd.oasis.opendocument.text'],
+            pdf.partition_pdf: ['application/pdf'],
+            text.partition_text: [
+                'text/plain', 'text/x-python', 'text/javascript',
+                'text/x-java-source', 'text/x-c', 'text/x-c++src',
+                'application/x-sh', 'application/x-ruby',
+                'application/x-php', 'text/x-go'
+            ],
+            ppt.partition_ppt: ['application/vnd.ms-powerpoint'],
+            pptx.partition_pptx: ['application/vnd.openxmlformats-officedocument.presentationml.presentation'],
+            rst.partition_rst: ['text/x-rst'],
+            rtf.partition_rtf: ['application/rtf'],
+            tsv.partition_tsv: ['text/tab-separated-values'],
+            doc.partition_doc: ['application/msword'],
+            docx.partition_docx: ['application/vnd.openxmlformats-officedocument.wordprocessingml.document'],
+            xml.partition_xml: ['application/xml'],
+        }
+
+        if file_path:
+            content_type = CommonService().detect_content_type(file_path)
+
+            partition_func = next(
+                (func for func, types in partition_map.items() if content_type in types),
+                None
+            )
+
+            if not partition_func:
+                raise ValueError(f"Can't load '{file_path}', unsupported content type: {content_type}.")
+
+            try:
+                return partition_func(file_path, **kwargs)
+            except Exception as e:
+                raise Exception(e)
+        else:
+            return partition(url=web_url)

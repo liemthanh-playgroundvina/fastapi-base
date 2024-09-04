@@ -6,6 +6,7 @@ from app.core.config import settings
 from app.mq_main import celery_execute, redis
 from app.schemas.base import DataResponse
 from app.schemas.queue import QueueResult
+from app.services.common import DocumentLoaderService
 
 from sse_starlette import EventSourceResponse
 
@@ -15,7 +16,14 @@ class ChatDocService(object):
 
     @staticmethod
     def chat_doc_lc(request, web_urls: list, files_path: list):
-        return DataResponse().success_response(data=[request, web_urls, files_path])
+        # Load file/url
+        elements = []
+        for web_url in web_urls:
+            elements.append(DocumentLoaderService().loader(web_url=web_url))
+        for file_path in files_path:
+            elements.append(DocumentLoaderService().loader(file_path=file_path))
+
+        return DataResponse().success_response(data=elements)
 
         # return EventSourceResponse(chat_doc_lc_openai(request))
 
