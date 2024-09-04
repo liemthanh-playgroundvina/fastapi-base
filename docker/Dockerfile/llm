@@ -1,43 +1,20 @@
-FROM nvidia/cuda:11.8.0-cudnn8-devel-ubuntu20.04 as cuda-base
+FROM nvidia/cuda:11.8.0-cudnn8-devel-ubuntu20.04
+
+RUN apt-get update && apt-get upgrade -y \
+    && apt-get install -y git build-essential \
+    python3 python3-pip gcc wget \
+    ocl-icd-opencl-dev opencl-headers clinfo \
+    libclblast-dev libopenblas-dev \
+    && mkdir -p /etc/OpenCL/vendors && echo "libnvidia-opencl.so.1" > /etc/OpenCL/vendors/nvidia.icd
 
 
-FROM python:3.9 as builder
-WORKDIR /app
-RUN pip install --user --no-cache-dir pytest cmake scikit-build setuptools fastapi uvicorn sse-starlette pydantic-settings starlette-context huggingface-hub
-
-
-FROM python:3.9-slim
-
-ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1 \
-    PATH=/root/.local/bin:$PATH
-
-RUN apt-get update && apt-get install -y \
-    jq \
-    build-essential \
-    unoconv \
-    ffmpeg \
-    libc6 \
-    && apt-get clean autoclean \
-    && apt-get autoremove --yes \
-    && rm -rf /var/lib/{apt,dpkg,cache,log}/
+ENV CUDA_DOCKER_ARCH=all
+ENV LLAMA_CUBLAS=1
 
 WORKDIR /app
 
-RUN pip install llama-cpp-python
-
-# Lib
-COPY --from=builder /root/.local /root/.local
-
-# CUDA Home
-COPY --from=cuda-base /usr/local/cuda /usr/local/cuda
-COPY --from=cuda-base /usr/local/cuda-11.8 /usr/local/cuda-11.8
-# CUdnn Home
-#COPY --from=cuda-base /usr/lib/x86_64-linux-gnu /usr/lib/x86_64-linux-gnu
-
-# Path
-ENV PATH=/usr/local/cuda/bin:${PATH}
-ENV LD_LIBRARY_PATH=/usr/local/cuda/lib64:/usr/local/cuda-11.8/targets/x86_64-linux/lib:/usr/local/lib/python3.9/site-packages/torch/lib:${LD_LIBRARY_PATH}
+RUN python3 -m pip install --upgrade pip pytest cmake scikit-build setuptools fastapi uvicorn sse-starlette pydantic-settings starlette-context huggingface-hub==0.20.1
+RUN CMAKE_ARGS="-DLLAMA_CUBLAS=on" pip install llama-cpp-python
 
 COPY ./static/ ./static
 COPY ./scripts/llm/* ./scripts/
@@ -45,4 +22,4 @@ RUN chmod +x ./scripts/*
 
 WORKDIR /
 
-CMD ["bash"]
+CMD ["/app/scripts/entrypoint.sh"]
