@@ -250,3 +250,5 @@ class DocumentLoaderService(object):
         markdowns = []
         for doc in docs:
             markdowns.append(DocumentLoaderService().iter_markdown_lines(doc))
+
+        return markdowns
