@@ -17,11 +17,8 @@ class ChatDocService(object):
     @staticmethod
     def chat_doc_lc(request, web_urls: list, files_path: list):
         # Load file/url
-        elements = []
-        for web_url in web_urls:
-            elements.append(DocumentLoaderService().loader(web_url=web_url))
-        for file_path in files_path:
-            elements.append(DocumentLoaderService().loader(file_path=file_path))
+        elements = DocumentLoaderService().loaders(files_path, web_urls)
+        elements = DocumentLoaderService().cleaner(elements)
 
         return DataResponse().success_response(data=elements)
 

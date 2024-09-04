@@ -1,3 +1,4 @@
+import itertools
 import os
 import uuid
 import mimetypes
@@ -135,8 +136,10 @@ class DocumentLoaderService(object):
         return cls.__instance
 
     @staticmethod
-    def loader(file_path = None, web_url = None, **kwargs):
+    def loader(file_path = None, web_url = None):
+        """
         # https://docs.unstructured.io/open-source/core-functionality/partitioning
+        """
         from unstructured.partition import (
             csv, email, msg, epub, xlsx, html, image, md, org, odt, pdf, text, ppt, pptx, rst,
             rtf, tsv, doc, docx, xml
@@ -189,8 +192,48 @@ class DocumentLoaderService(object):
                 raise ValueError(f"Can't load '{file_path}', unsupported content type: {content_type}.")
 
             try:
-                return partition_func(file_path, **kwargs)
+                return partition_func(file_path, include_page_breaks=True)
             except Exception as e:
                 raise Exception(e)
         else:
             return partition(url=web_url)
+
+    @staticmethod
+    def loaders(files_path: list, web_urls: list):
+        elements = []
+        for web_url in web_urls:
+            elements.append(DocumentLoaderService().loader(web_url=web_url))
+        for file_path in files_path:
+            elements.append(DocumentLoaderService().loader(file_path=file_path))
+
+        elements = list(itertools.chain(*elements))
+
+        return elements
+
+    @staticmethod
+    def cleaner(elements):
+        """
+        https://docs.unstructured.io/open-source/core-functionality/cleaning
+        https://github.com/Unstructured-IO/unstructured/blob/main/unstructured/cleaners/core.py
+        Custom:
+
+            import re
+            remove_citations = lambda text: re.sub("\[\d{1,3}\]", "", text)
+            element.apply(remove_citations)
+
+        """
+        from unstructured.cleaners.core import (
+            clean_non_ascii_chars,
+            clean_ligatures,
+            group_bullet_paragraph,
+            group_broken_paragraphs,
+            replace_unicode_quotes,
+            replace_mime_encodings,
+            bytes_string_to_string,
+            clean_extra_whitespace,
+        )
+
+
+        for i, element in enumerate(elements):
+            elements[i] = element.apply(clean_extra_whitespace)
+        return elements
