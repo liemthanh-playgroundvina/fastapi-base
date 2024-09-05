@@ -197,7 +197,6 @@ class DocumentLoaderService(object):
         )
         elements_cleaned = deepcopy(elements)
         for e in elements_cleaned:
-            e.text = clean_non_ascii_chars(e.text)
             e.text = clean_ligatures(e.text)
             e.text = '\n'.join(group_bullet_paragraph(e.text))
             e.text = group_broken_paragraphs(e.text)
