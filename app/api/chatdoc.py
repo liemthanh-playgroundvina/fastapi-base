@@ -10,7 +10,7 @@ from app.helpers.login_manager import login_required, PermissionRequired
 from app.mq_main import redis
 from app.schemas.base import DataResponse
 
-from app.schemas.chatdoc import EmbedDocRequest
+from app.schemas.chatdoc import EmbedDocRequest, ChatDocLCRequest
 from app.schemas.queue import QueueResponse
 from app.services.chatdoc import ChatDocService
 from app.services.common import CommonService
@@ -82,7 +82,7 @@ def embed_doc_queue(
 
         utc_now, task_id, data = CommonService().init_task_queue()
         redis.set(task_id, json.dumps(data.__dict__))
-        bg_task.add_task(ChatDocService.embed_doc_queue, task_id, data, request_queue)
+        bg_task.add_task(ChatDocService().embed_doc_queue, task_id, data, request_queue)
         return DataResponse().success_response(data=QueueResponse(status="PENDING", time=utc_now, task_id=task_id))
 
     except ValueError as e:
@@ -91,3 +91,35 @@ def embed_doc_queue(
     except Exception as e:
         logging.getLogger('app').debug(Exception(e), exc_info=True)
         raise CustomException(http_code=500, code='500', message="Internal Server Error")
+
+
+@router.post(
+    "/chat-doc/lc",
+    dependencies=[Depends(login_required)],
+    # response_model=DataResponse[]
+)
+def chat_doc_lc(request: ChatDocLCRequest) -> Any:
+    """
+    Chat Document Using LLM Long Context
+
+    Params:
+        - data_id (str): The collection name to chat
+        - messages (list): Message of user
+        - chat_model (dict):
+            + platform (str)
+            + model_name (str):
+            + temperature (float): [0 -> 1.0]
+            + max_tokens (int):
+    Returns:
+
+        - response:
+            [DATA_STREAMING] <string_data> [DONE] [METADATA] <json_metadata>
+
+        - in <string_data>:
+            - '\\n' is replaced to '<!<newline>!>'
+
+    Note:
+        - With Draw Plot Tool:
+            <PLOT> json_plot <\PLOT>
+    """
+    return ChatDocService().chat_doc_lc(request)
