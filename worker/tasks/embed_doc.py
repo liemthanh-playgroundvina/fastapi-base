@@ -43,15 +43,17 @@ def embed_doc_task(self, task_id: str, data: bytes, request: bytes):
         TaskStatusManager.check_task_removed(task_id)
 
         # Load file/url
+        print("a")
         docs = DocumentLoaderService().loaders(request['files_path'], request['web_urls'])
+        print("b")
         docs_cleaned = DocumentLoaderService().cleaners(docs)
-
+        print("c")
         if request['chat_type'] == "lc":
             mds = DocumentLoaderService.docs_to_markdowns(docs_cleaned)
             response = mds
         elif request['chat_type'] == "rag":
             response = []
-
+        print("d")
         # Successful
         metadata = {
             "task": inspect.currentframe().f_code.co_name.replace("_task", ""),
