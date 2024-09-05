@@ -191,11 +191,9 @@ class DocumentLoaderService(object):
             bytes_string_to_string,
             clean_extra_whitespace,
         )
-        elements_cleaned = []
-        print(elements)
-        for e in elements:
-            print(e)
-            e_cleaned = (e.apply(clean_non_ascii_chars)
+        elements_cleaned = deepcopy(elements)
+        for e in elements_cleaned:
+            (e.apply(clean_non_ascii_chars)
                          .apply(clean_ligatures)
                          .apply(group_bullet_paragraph)
                          .apply(group_broken_paragraphs)
@@ -204,7 +202,6 @@ class DocumentLoaderService(object):
                          .apply(bytes_string_to_string)
                          .apply(clean_extra_whitespace)
             )
-            elements_cleaned.append(e_cleaned)
         return elements_cleaned
 
 
