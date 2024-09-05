@@ -93,11 +93,6 @@ class WorkerCommonService(object):
 class DocumentLoaderService(object):
     __instance = None
 
-    def __new__(cls, *args, **kwargs):
-        if cls.__instance is None:
-            cls.__instance = super(DocumentLoaderService, cls).__new__(cls)
-        return cls.__instance
-
     @staticmethod
     def loader(file_path = None, web_url = None) -> list[Element]:
         """
@@ -186,7 +181,6 @@ class DocumentLoaderService(object):
 
         """
         from unstructured.cleaners.core import (
-            clean_non_ascii_chars,
             clean_ligatures,
             group_bullet_paragraph,
             group_broken_paragraphs,
