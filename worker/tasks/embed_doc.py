@@ -44,8 +44,7 @@ def embed_doc_task(self, task_id: str, data: bytes, request: bytes):
 
         # Load file/url
         docs = DocumentLoaderService().loaders(request['files_path'], request['web_urls'])
-        # docs_cleaned = DocumentLoaderService().cleaners(docs)
-        docs_cleaned = docs
+        docs_cleaned = DocumentLoaderService().cleaners(docs)
 
         if request['chat_type'] == "lc":
             mds = DocumentLoaderService.docs_to_markdowns(docs_cleaned)

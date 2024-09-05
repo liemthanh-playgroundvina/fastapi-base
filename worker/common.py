@@ -6,6 +6,8 @@ from datetime import datetime
 from typing import Union, List, Dict, Tuple, Iterator
 from app.mq_main import redis
 
+from unstructured.documents.elements import Element
+
 
 class TaskStatusManager(object):
     __instance = None
@@ -97,7 +99,7 @@ class DocumentLoaderService(object):
         return cls.__instance
 
     @staticmethod
-    def loader(file_path = None, web_url = None):
+    def loader(file_path = None, web_url = None) -> list[Element]:
         """
         # https://docs.unstructured.io/open-source/core-functionality/partitioning
         """
@@ -160,7 +162,7 @@ class DocumentLoaderService(object):
             return partition(url=web_url)
 
     @staticmethod
-    def loaders(files_path: list, web_urls: list):
+    def loaders(files_path: list, web_urls: list) -> list[list[Element]]:
         docs = []
         for web_url in web_urls:
             docs.append(DocumentLoaderService().loader(web_url=web_url))
@@ -170,7 +172,7 @@ class DocumentLoaderService(object):
         return docs
 
     @staticmethod
-    def cleaner(elements):
+    def cleaner(elements: list[Element]) -> list[Element]:
         """
         https://docs.unstructured.io/open-source/core-functionality/cleaning
         https://github.com/Unstructured-IO/unstructured/blob/main/unstructured/cleaners/core.py
@@ -179,6 +181,8 @@ class DocumentLoaderService(object):
             import re
             remove_citations = lambda text: re.sub("\[\d{1,3}\]", "", text)
             element.apply(remove_citations)
+
+
 
         """
         from unstructured.cleaners.core import (
@@ -193,29 +197,26 @@ class DocumentLoaderService(object):
         )
         elements_cleaned = deepcopy(elements)
         for e in elements_cleaned:
-            print(e)
-            (e.apply(clean_non_ascii_chars)
-             .apply(clean_ligatures)
-             .apply(group_bullet_paragraph)
-             .apply(group_broken_paragraphs)
-             .apply(replace_unicode_quotes)
-             .apply(replace_mime_encodings)
-             .apply(bytes_string_to_string)
-             .apply(clean_extra_whitespace)
-            )
-            print(e)
+            e.text = clean_non_ascii_chars(e.text)
+            e.text = clean_ligatures(e.text)
+            e.text = '\n'.join(group_bullet_paragraph(e.text))
+            e.text = group_broken_paragraphs(e.text)
+            e.text = replace_unicode_quotes(e.text)
+            e.text = replace_mime_encodings(e.text)
+            e.text = bytes_string_to_string(e.text)
+            e.text = clean_extra_whitespace(e.text)
         return elements_cleaned
 
 
     @staticmethod
-    def cleaners(docs):
+    def cleaners(docs: list[list[Element]]) -> list[list[Element]]:
         docs_cleaned = []
         for doc in docs:
             docs_cleaned.append(DocumentLoaderService().cleaner(doc))
         return docs_cleaned
 
     @staticmethod
-    def iter_markdown_lines(elements) -> Iterator[str]:
+    def iter_markdown_lines(elements: list[Element]) -> Iterator[str]:
         for e in elements:
             if e.category == "Title":
                 yield f"# {e.text}"
@@ -225,11 +226,11 @@ class DocumentLoaderService(object):
                 yield e.text
 
     @staticmethod
-    def docs_to_markdowns(docs):
+    def docs_to_markdowns(docs: list[list[Element]]) -> list[str]:
         markdowns = []
         for doc in docs:
             markdown = f"""**Metadata**
-- Filename/URL: {doc[0].url or doc[0].filename}
+- Filename/URL: {doc[0].metadata.url or doc[0].metadata.filename}
 - Date created: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
 **Context**
 """
