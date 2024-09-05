@@ -193,15 +193,17 @@ class DocumentLoaderService(object):
         )
         elements_cleaned = deepcopy(elements)
         for e in elements_cleaned:
+            print(e)
             (e.apply(clean_non_ascii_chars)
-                         .apply(clean_ligatures)
-                         .apply(group_bullet_paragraph)
-                         .apply(group_broken_paragraphs)
-                         .apply(replace_unicode_quotes)
-                         .apply(replace_mime_encodings)
-                         .apply(bytes_string_to_string)
-                         .apply(clean_extra_whitespace)
+             .apply(clean_ligatures)
+             .apply(group_bullet_paragraph)
+             .apply(group_broken_paragraphs)
+             .apply(replace_unicode_quotes)
+             .apply(replace_mime_encodings)
+             .apply(bytes_string_to_string)
+             .apply(clean_extra_whitespace)
             )
+            print(e)
         return elements_cleaned
 
 
