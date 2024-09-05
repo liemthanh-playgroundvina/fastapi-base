@@ -61,6 +61,16 @@ class WorkerCommonService(object):
         return content_type
 
     @staticmethod
+    def save_file(file_name: str, content: str) -> None:
+        directory = os.path.dirname(file_name)
+        os.makedirs(directory, exist_ok=True)
+
+        with open(file_name, 'w', encoding='utf-8') as f:
+            f.write(content)
+
+        return None
+
+    @staticmethod
     def upload_s3_file(file_path: str, content_type: str, folder_in_s3: str):
         from worker.upload_s3 import upload_file
 

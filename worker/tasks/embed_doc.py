@@ -8,7 +8,7 @@ from app.core.config import settings
 
 from worker.tasks import BaseTask
 from worker.celery_app import app
-from worker.common import TaskStatusManager, DocumentLoaderService
+from worker.common import TaskStatusManager, DocumentLoaderService, WorkerCommonService
 from celery.exceptions import SoftTimeLimitExceeded
 from amqp.exceptions import PreconditionFailed
 
@@ -98,7 +98,6 @@ def save_file_for_chatlc(docs_cleaned) -> str:
     data_id = str(uuid.uuid4())
 
     file_name = os.path.join(settings.WORKER_DIRECTORY, "chatdoc/lc", f"{data_id}.md")
-    with open(file_name, 'w', encoding='utf-8') as f:
-        f.write(md_content)
+    WorkerCommonService().save_file(file_name, md_content)
 
     return data_id
