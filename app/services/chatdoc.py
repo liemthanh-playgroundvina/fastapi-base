@@ -89,7 +89,7 @@ def chatdoclc_openai(request: ChatDocLCRequest):
     chat = ChatOpenAIServices(request)
     chat.init_system_prompt()
 
-    chat.stream(message_id)
+    yield from chat.stream(message_id)
     print(chat.__dict__)
     print(chat.answer)
 
