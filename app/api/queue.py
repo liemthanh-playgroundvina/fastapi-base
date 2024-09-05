@@ -74,7 +74,7 @@ def queue_status(
 
     # Check task is working -> dead -> failed ()
     status_task = message["status"]["task_status"]
-    if (status_general == "SUCCESS" and status_task != "SUCCESS") and curr_time - start_time > float(settings.QUEUE_TIME_LIMIT) * 10:
+    if (status_general == "SUCCESS" and status_task != "SUCCESS") and curr_time - start_time > float(settings.QUEUE_TIME_LIMIT) * 2:
         logging.getLogger('app').debug(Exception(f"{task_id}: Task failed after work, maybe worker dead when processing"), exc_info=True)
         message["status"]["general_status"] = "TIMELIMIT"
         message["time"]["end_generate"] = str(curr_time)
