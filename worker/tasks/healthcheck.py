@@ -26,7 +26,7 @@ from amqp.exceptions import PreconditionFailed
 def healthcheck_task(self, task_id: str, data: bytes):
     """
     """
-    print(f"============= [{task_id}]{inspect.currentframe().f_code.co_name} : Started ===================")
+    print(f"============= [{task_id}][{inspect.currentframe().f_code.co_name}]: Started ===================")
     try:
         # Load data
         data = json.loads(data)

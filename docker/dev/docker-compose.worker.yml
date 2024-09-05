@@ -55,6 +55,7 @@ services:
       - .env
     volumes:
       - volume-rabbitmq:/var
+      - volume-rabbitmq-config:/etc/rabbitmq
     networks:
       - net
 
@@ -67,6 +68,8 @@ volumes:
     name: ${NAME}-${ENV}-redis-data
   volume-rabbitmq:
     name: ${NAME}-${ENV}-rabbitmq-data
+  volume-rabbitmq-config:
+    name: ${NAME}-${ENV}-rabbitmq-config
 
 networks:
   net:

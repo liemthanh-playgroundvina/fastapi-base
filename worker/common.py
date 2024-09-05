@@ -192,7 +192,9 @@ class DocumentLoaderService(object):
             clean_extra_whitespace,
         )
         elements_cleaned = []
+        print(elements)
         for e in elements:
+            print(e)
             e_cleaned = (e.apply(clean_non_ascii_chars)
                          .apply(clean_ligatures)
                          .apply(group_bullet_paragraph)
