@@ -7,7 +7,7 @@ from app.core.config import settings
 
 from worker.tasks import BaseTask
 from worker.celery_app import app
-from worker.common import TaskStatusManager
+from worker.common import TaskStatusManager, DocumentLoaderService
 from celery.exceptions import SoftTimeLimitExceeded
 from amqp.exceptions import PreconditionFailed
 
@@ -42,13 +42,22 @@ def embed_doc_task(self, task_id: str, data: bytes, request: bytes):
         # Check task removed
         TaskStatusManager.check_task_removed(task_id)
 
-        ###
+        # Load file/url
+        docs = DocumentLoaderService().loaders(request['files_path'], request['web_urls'])
+        docs_cleaned = DocumentLoaderService().cleaners(docs)
+
+        if request['chat_type'] == "lc":
+            mds = DocumentLoaderService.docs_to_markdowns(docs_cleaned)
+            response = [docs, docs_cleaned, mds]
+        elif request['chat_type'] == "rag":
+            response = [docs, docs_cleaned]
 
         # Successful
         metadata = {
             "task": inspect.currentframe().f_code.co_name.replace("_task", ""),
+            "request": request
         }
-        response = {"data": request, "metadata": metadata}
+        response = {"data": response, "metadata": metadata}
         TaskStatusManager.success(task_id, data, response)
         return
 
