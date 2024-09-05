@@ -1,8 +1,9 @@
+import mimetypes
 import os
 import json
 from copy import deepcopy
 from datetime import datetime
-from typing import Union
+from typing import Union, List, Dict, Tuple, Iterator
 from app.mq_main import redis
 
 
@@ -48,6 +49,13 @@ class TaskStatusManager(object):
 
 class WorkerCommonService(object):
     __instance = None
+
+    @staticmethod
+    def detect_content_type(file_path):
+        """Detect MIME type based on file extension."""
+
+        content_type, _ = mimetypes.guess_type(file_path)
+        return content_type
 
     @staticmethod
     def upload_s3_file(file_path: str, content_type: str, folder_in_s3: str):
@@ -134,7 +142,7 @@ class DocumentLoaderService(object):
         }
 
         if file_path:
-            content_type = CommonService().detect_content_type(file_path)
+            content_type = WorkerCommonService().detect_content_type(file_path)
 
             partition_func = next(
                 (func for func, types in partition_map.items() if content_type in types),
