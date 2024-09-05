@@ -125,4 +125,5 @@ def chat_doc_lc(request: ChatDocLCRequest) -> Any:
         - With Draw Plot Tool:
             <PLOT> json_plot <\PLOT>
     """
+    request = ChatDocLCRequest(**request)
     return ChatDocService().chat_doc_lc(request)
