@@ -177,8 +177,6 @@ class DocumentLoaderService(object):
             remove_citations = lambda text: re.sub("\[\d{1,3}\]", "", text)
             element.apply(remove_citations)
 
-
-
         """
         from unstructured.cleaners.core import (
             clean_ligatures,
