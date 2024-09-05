@@ -6,7 +6,6 @@ from app.core.config import settings
 from app.mq_main import celery_execute, redis
 from app.schemas.base import DataResponse
 from app.schemas.queue import QueueResult
-from app.services.common import DocumentLoaderService
 
 from sse_starlette import EventSourceResponse
 
@@ -16,8 +15,6 @@ class ChatDocService(object):
 
     @staticmethod
     def embed_doc_queue(task_id: str, data: QueueResult, request):
-        """
-        """
         try:
 
             data_dump = json.dumps(data.__dict__)
