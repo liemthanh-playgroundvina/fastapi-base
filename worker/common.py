@@ -192,11 +192,11 @@ class DocumentLoaderService(object):
         elements_cleaned = deepcopy(elements)
         for e in elements_cleaned:
             e.text = clean_ligatures(e.text)
-            e.text = '\n'.join(group_bullet_paragraph(e.text))
-            e.text = group_broken_paragraphs(e.text)
-            e.text = replace_unicode_quotes(e.text)
             e.text = replace_mime_encodings(e.text)
             e.text = bytes_string_to_string(e.text)
+            e.text = replace_unicode_quotes(e.text)
+            e.text = '\n'.join(group_bullet_paragraph(e.text))
+            e.text = group_broken_paragraphs(e.text)
             e.text = clean_extra_whitespace(e.text)
         return elements_cleaned
 
