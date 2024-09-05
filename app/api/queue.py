@@ -68,7 +68,7 @@ def queue_status(
         logging.getLogger('app').debug(Exception(f"{task_id}: Worker is don't working, or queue time out!"), exc_info=True)
         message["status"]["general_status"] = "TIMEOUT"
         message["time"]["end_generate"] = str(curr_time)
-        message['error'] = {'code': "502", 'message': "Internal Server Error!"}
+        message['error'] = {'code': "500", 'message': "Internal Server Error!"}
         data_dump = json.dumps(message)
         redis.set(task_id, data_dump)
 
@@ -78,7 +78,7 @@ def queue_status(
         logging.getLogger('app').debug(Exception(f"{task_id}: Task failed after work, maybe worker dead when processing"), exc_info=True)
         message["status"]["general_status"] = "TIMELIMIT"
         message["time"]["end_generate"] = str(curr_time)
-        message['error'] = {'code': "503", 'message': "Internal Server Error!"}
+        message['error'] = {'code': "500", 'message': "Internal Server Error!"}
         data_dump = json.dumps(message)
         redis.set(task_id, data_dump)
 

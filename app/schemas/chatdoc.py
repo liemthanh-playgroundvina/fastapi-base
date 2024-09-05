@@ -64,4 +64,7 @@ class ChatDocLCRequest(BaseChatRequest):
     @root_validator(pre=True)
     def validate(cls, values):
         values = super().validate(values)
+        data_id = values.get('data_id', "")
+        if not data_id.strip():
+            raise CustomException(http_code=400, code='400', message=f"[data_id] is not empty.")
         return values

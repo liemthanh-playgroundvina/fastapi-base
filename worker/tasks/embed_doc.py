@@ -48,9 +48,9 @@ def embed_doc_task(self, task_id: str, data: bytes, request: bytes):
 
         if request['chat_type'] == "lc":
             mds = DocumentLoaderService.docs_to_markdowns(docs_cleaned)
-            response = [docs, docs_cleaned, mds]
+            response = mds
         elif request['chat_type'] == "rag":
-            response = [docs, docs_cleaned]
+            response = []
 
         # Successful
         metadata = {

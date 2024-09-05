@@ -20,7 +20,7 @@ router = APIRouter()
 
 
 @router.post(
-    "/chat-doc/embed/queue",
+    "/embed/queue",
     dependencies=[Depends(login_required)],
     # response_model=DataResponse[]
 )
@@ -94,7 +94,7 @@ def embed_doc_queue(
 
 
 @router.post(
-    "/chat-doc/lc",
+    "/lc",
     dependencies=[Depends(login_required)],
     # response_model=DataResponse[]
 )
@@ -103,6 +103,7 @@ def chat_doc_lc(request: ChatDocLCRequest) -> Any:
     Chat Document Using LLM Long Context
 
     Params:
+
         - data_id (str): The collection name to chat
         - messages (list): Message of user
         - chat_model (dict):
@@ -119,6 +120,7 @@ def chat_doc_lc(request: ChatDocLCRequest) -> Any:
             - '\\n' is replaced to '<!<newline>!>'
 
     Note:
+
         - With Draw Plot Tool:
             <PLOT> json_plot <\PLOT>
     """
