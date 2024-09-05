@@ -6,7 +6,7 @@ from typing import Optional, Tuple, Text, Dict, List
 
 from app.helpers.exception_handler import CustomException
 from app.core.config import settings
-from app.helpers.llm.preprompts.store import get_system_prompt_follow_name, check_web_browser_prompt
+from app.helpers.llm.preprompts.store import get_system_prompt, check_web_browser_prompt
 from app.services.common import CommonService, GoogleSearchService
 
 from openai import OpenAI
@@ -74,9 +74,9 @@ def chat_openai(request: dict):
 
     store_name = request.get("store_name", "")
     if store_name:
-        messages[0]['content'] = get_system_prompt_follow_name("", store_name)
+        messages[0]['content'] =  get_system_prompt(store_name= store_name)
     else:
-        messages[0]['content'] = get_system_prompt_follow_name(messages[0]['content'], None)
+        messages[0]['content'] =  get_system_prompt(input_pmt=messages[0]['content'])
 
     # Check check_web_browser
     logging.getLogger('app').info("-- CHECK MODE WEB SEARCH:")
