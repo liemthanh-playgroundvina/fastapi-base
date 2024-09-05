@@ -6,7 +6,7 @@ from datetime import datetime
 from typing import Union, List, Dict, Tuple, Iterator
 from app.mq_main import redis
 
-from unstructured.documents.elements import Element
+from unstructured.documents.elements import Element, ElementType
 
 
 class TaskStatusManager(object):
@@ -218,10 +218,36 @@ class DocumentLoaderService(object):
     @staticmethod
     def iter_markdown_lines(elements: list[Element]) -> Iterator[str]:
         for e in elements:
-            if e.category == "Title":
+            if e.category in {ElementType.TITLE, ElementType.PAGE_HEADER, ElementType.SECTION_HEADER, ElementType.HEADLINE}:
                 yield f"# {e.text}"
-            elif e.category == "ListItem":
+            elif e.category == ElementType.SUB_HEADLINE:
+                yield f"## {e.text}"
+            elif e.category == ElementType.LIST_ITEM or e.category == ElementType.LIST_ITEM_OTHER:
                 yield f"- {e.text}"
+            elif e.category == ElementType.CHECKED or e.category == ElementType.CHECK_BOX_CHECKED:
+                yield f"- [x] {e.text}"
+            elif e.category == ElementType.UNCHECKED or e.category == ElementType.CHECK_BOX_UNCHECKED:
+                yield f"- [ ] {e.text}"
+            elif e.category == ElementType.LINK:
+                yield f"[{e.text}]({e.metadata.url})"
+            elif e.category == ElementType.CODE_SNIPPET:
+                yield f"```\n{e.text}\n```"
+            elif e.category == ElementType.TABLE:
+                yield e.text
+            elif e.category == ElementType.PAGE_BREAK:
+                yield "---"
+            elif e.category == ElementType.FIGURE or e.category == ElementType.PICTURE:
+                yield f"![{e.text}]({e.metadata.url})"
+            elif e.category == ElementType.FIGURE_CAPTION or e.category == ElementType.CAPTION:
+                yield f"*{e.text}*"
+            elif e.category in {ElementType.PARAGRAPH, ElementType.NARRATIVE_TEXT, ElementType.ABSTRACT}:
+                yield e.text
+            elif e.category == ElementType.HEADER or e.category == ElementType.FOOTER:
+                yield f"**{e.text}**"
+            elif e.category == ElementType.FOOTNOTE:
+                yield f"[^1]: {e.text}"
+            elif e.category == ElementType.PAGE_NUMBER:
+                yield f"(Page {e.text})"
             else:
                 yield e.text
 
