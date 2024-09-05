@@ -234,7 +234,7 @@ class DocumentLoaderService(object):
 - Date created: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
 **Context**
 """
-            markdown += DocumentLoaderService().iter_markdown_lines(doc)
+            markdown += '\n'.join(DocumentLoaderService().iter_markdown_lines(doc))
             markdown += "\n---\n\n"
             markdowns.append(markdown)
         return markdowns
