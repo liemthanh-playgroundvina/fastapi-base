@@ -73,9 +73,16 @@ def embed_doc_queue(
             message = "Don't find your [files, urls]. Please check your input."
             raise ValueError(message)
 
+        # Request Queue
+        request_queue = json.dumps({
+            'chat_type': request.chat_type,
+            'files_path': files_path,
+            'web_urls': web_urls,
+        })
+
         utc_now, task_id, data = CommonService().init_task_queue()
         redis.set(task_id, json.dumps(data.__dict__))
-        bg_task.add_task(ChatDocService.embed_doc_queue, task_id, data, web_urls, files_path)
+        bg_task.add_task(ChatDocService.embed_doc_queue, task_id, data, request_queue)
         return DataResponse().success_response(data=QueueResponse(status="PENDING", time=utc_now, task_id=task_id))
 
     except ValueError as e:

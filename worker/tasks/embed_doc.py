@@ -27,8 +27,9 @@ def embed_doc_task(self, task_id: str, data: bytes, request: bytes):
     """
         request:
             {
-                "files_path": [],
-                 "web_urls": []
+                'chat_type': ['lc', 'rag'],
+                'files_path': [],
+                'web_urls': [],
             }
     """
     print(f"============= [{task_id}]{inspect.currentframe().f_code.co_name} : Started ===================")
@@ -40,6 +41,8 @@ def embed_doc_task(self, task_id: str, data: bytes, request: bytes):
 
         # Check task removed
         TaskStatusManager.check_task_removed(task_id)
+
+        ###
 
         # Successful
         metadata = {

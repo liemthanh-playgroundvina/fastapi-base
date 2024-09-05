@@ -15,24 +15,12 @@ class ChatDocService(object):
     __instance = None
 
     @staticmethod
-    def chat_doc_lc(request, web_urls: list, files_path: list):
-        # Load file/url
-        docs = DocumentLoaderService().loaders(files_path, web_urls)
-        docs_cleaned = DocumentLoaderService().cleaners(docs)
-
-        mds = DocumentLoaderService.docs_to_markdowns(docs_cleaned)
-
-        return DataResponse().success_response(data=[docs, docs_cleaned, mds])
-
-        # return EventSourceResponse(chat_doc_lc_openai(request))
-
-    @staticmethod
-    def embed_doc_queue(task_id: str, data: QueueResult,
-                          web_urls: list, files_path: list):
+    def embed_doc_queue(task_id: str, data: QueueResult, request):
+        """
+        """
         try:
 
             data_dump = json.dumps(data.__dict__)
-            request = json.dumps({"files_path": files_path, "web_urls": web_urls})
             # Send task
             celery_execute.send_task(
                 name="{worker}.{task}".format(
