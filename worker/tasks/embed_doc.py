@@ -2,6 +2,7 @@ import inspect
 import logging
 import json
 import os
+import uuid
 
 from app.core.config import settings
 
@@ -43,13 +44,18 @@ def embed_doc_task(self, task_id: str, data: bytes, request: bytes):
         TaskStatusManager.check_task_removed(task_id)
 
         # Load file/url
+        print("Document Loader: ...")
         docs = DocumentLoaderService().loaders(request['files_path'], request['web_urls'])
         docs_cleaned = DocumentLoaderService().cleaners(docs)
+        # Save / Embed follow chat type
         if request['chat_type'] == "lc":
-            mds = DocumentLoaderService.docs_to_markdowns(docs_cleaned)
-            response = mds
+            data_id = save_file_for_chatlc(docs_cleaned)
         elif request['chat_type'] == "rag":
-            response = []
+            data_id = ''
+        print("Document Loader: Done")
+
+        response = {"data_id": data_id}
+
         # Successful
         metadata = {
             "task": inspect.currentframe().f_code.co_name.replace("_task", ""),
@@ -81,3 +87,18 @@ def embed_doc_task(self, task_id: str, data: bytes, request: bytes):
         err = {'code': "500", 'message': "Internal Server Error"}
         TaskStatusManager.failed(task_id, data, err)
         return
+
+
+def save_file_for_chatlc(docs_cleaned) -> str:
+    # Convert to .md
+    mds = DocumentLoaderService.docs_to_markdowns(docs_cleaned)
+    md_content = '\n\n'.join(mds)
+
+    # Save to .md
+    data_id = str(uuid.uuid4())
+
+    file_name = os.path.join(settings.WORKER_DIRECTORY, "chatdoc/lc", f"{data_id}.md")
+    with open(file_name, 'w', encoding='utf-8') as f:
+        f.write(md_content)
+
+    return data_id
