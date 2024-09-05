@@ -70,9 +70,9 @@ class ChatDocService(object):
         """
         try:
             # Ask bot
-            if request['chat_model']["platform"] in ["OpenAI", "local"]:
+            if request.chat_model.platform in ["OpenAI", "local"]:
                 return EventSourceResponse(chatdoclc_openai(request))
-            # elif request['chat_model']["platform"] == "Google":
+            # elif request.chat_model.platform == "Google":
             #     ...
 
         except ValueError as e:
