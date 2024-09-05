@@ -78,9 +78,10 @@ venv/*
 .DS_Store
 */.DS_Store
 
-# static
+# project
 /static/public/*
 !/static/public/docs/
 cache/
 logs/*
 !logs/logging.ini
+nohup.out
