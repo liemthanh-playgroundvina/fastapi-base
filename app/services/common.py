@@ -1,8 +1,12 @@
+import json
+import logging
 import os
 import uuid
 import mimetypes
 
 import uuid
+
+import httpx
 import requests
 from datetime import datetime
 from typing import List, Dict, Tuple, Iterator
@@ -13,9 +17,11 @@ from requests.exceptions import HTTPError
 
 from app.core.config import settings
 from app.schemas.queue import QueueTimeHandle, QueueStatusHandle, QueueResult
+from app.schemas.chatbot import BaseChatRequest
 
 from googleapiclient.discovery import build
 from bs4 import BeautifulSoup
+from openai import OpenAI
 
 
 class CommonService(object):
@@ -124,3 +130,94 @@ class GoogleSearchService(object):
                 texts.append(text)
 
         return texts
+
+class ChatOpenAIServices:
+    def __init__(self, request: BaseChatRequest):
+        self.messages = request.messages
+        self.host = request.chat_model.platform
+        self.model = request.chat_model.model_name
+        self.temperature = request.chat_model.temperature
+        self.max_tokens = request.chat_model.max_tokens
+
+        if self.host == "OpenAI":
+            self.client = OpenAI(api_key=settings.OPENAI_API_KEY)
+        elif self.host == 'local':
+            self.client = OpenAI(
+                base_url=settings.LLM_URL,
+                default_headers={"x-foo": "true"},
+                http_client=httpx.Client(verify=False)
+            )
+        else:
+            raise ValueError(f"""Don't existed {self.host} platform""")
+
+        self.answer = ""
+
+    def init_system_prompt(self, store_name: str = None):
+        from app.helpers.llm.preprompts.store import get_system_prompt
+
+        if self.messages[0]['role'] != "system":
+            self.messages = [{"role": "system", "content": "You are an assistant."}] + self.messages
+        if store_name:
+            self.messages[0]['content'] = get_system_prompt(store_name=store_name)
+        else:
+            self.messages[0]['content'] = get_system_prompt(input_pmt=self.messages[0]['content'])
+
+    def messages_to_str(self) -> str:
+        mess_str = ""
+        for mess in self.messages:
+            mess_str += "\n" + json.dumps(mess, ensure_ascii=False)
+        return mess_str
+
+    def stream(self, message_id: str, stream_type: str = "RESPOND"):
+        # Log message
+        logging.getLogger('app').info(f"-- TYPE: {stream_type}. PROMPT: ")
+        logging.getLogger('app').info(self.messages_to_str())
+
+        yield {
+            "event": "new_message",
+            "id": message_id,
+            "retry": settings.RETRY_TIMEOUT,
+            "data": f"[{stream_type}ING]",
+        }
+        stream = self.client.chat.completions.create(
+            messages=self.messages,
+            model=self.model,
+            temperature=self.temperature,
+            max_tokens=self.max_tokens,
+            stream=True,
+        )
+
+        for line in stream:
+            if line.choices[0].delta.content:
+                current_response = line.choices[0].delta.content
+                self.answer += current_response
+                yield {
+                    "event": "new_message",
+                    "id": message_id,
+                    "retry": settings.RETRY_TIMEOUT,
+                    "data": current_response.replace("\n", "<!<newline>!>"),
+                }
+        yield {
+            "event": "new_message",
+            "id": message_id,
+            "retry": settings.RETRY_TIMEOUT,
+            "data": f"[{stream_type}ED]",
+        }
+
+    def function_calling(self) -> dict:
+        # Log message
+        logging.getLogger('app').info(f"PROMPT: ")
+        logging.getLogger('app').info(self.messages_to_str())
+
+        response = self.client.chat.completions.create(
+            model=self.model,
+            temperature=self.temperature,
+            response_format={"type": "json_object"},
+            messages=self.messages
+        )
+        output = json.loads(response.choices[0].message.content, strict=False)
+
+        return output
+
+
+

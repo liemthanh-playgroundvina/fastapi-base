@@ -14,7 +14,7 @@ with open(os.path.join(settings.STATIC_URL, "files/app", "GPTs.json"), 'r') as f
 STORES = list(PROMPTS.keys())
 
 
-def get_system_prompt_follow_name(input_pmt, store_name):
+def get_system_prompt(input_pmt = None, store_name = None):
     first_prompt = f"""You are a Assistant chatbot.
 Knowledge cutoff: 2023-10
 Current date: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}

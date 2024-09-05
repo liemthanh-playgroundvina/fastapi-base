@@ -1,14 +1,18 @@
 import json
 import inspect
 import logging
+from datetime import datetime
 
 from app.core.config import settings
 from app.helpers.exception_handler import CustomException
 from app.mq_main import celery_execute, redis
 from app.schemas.base import DataResponse
+from app.schemas.chatdoc import ChatDocLCRequest
 from app.schemas.queue import QueueResult
 
 from sse_starlette import EventSourceResponse
+
+from app.services.common import ChatOpenAIServices
 
 
 class ChatDocService(object):
@@ -46,7 +50,7 @@ class ChatDocService(object):
 
 
     @staticmethod
-    def chat_doc_lc(request):
+    def chat_doc_lc(request: ChatDocLCRequest):
         """
         "example": {
             "data_id": "",
@@ -65,12 +69,11 @@ class ChatDocService(object):
         }
         """
         try:
-            return DataResponse().success_response(data=request)
-            # # Ask bot
-            # if request['chat_model']["platform"] in ["OpenAI", "local"]:
-            #     return EventSourceResponse(chat_openai(request))
-            # # elif request['chat_model']["platform"] == "Google":
-            # #     ...
+            # Ask bot
+            if request['chat_model']["platform"] in ["OpenAI", "local"]:
+                return EventSourceResponse(chatdoclc_openai(request))
+            # elif request['chat_model']["platform"] == "Google":
+            #     ...
 
         except ValueError as e:
             raise CustomException(http_code=400, code='400', message=str(e))
@@ -78,3 +81,15 @@ class ChatDocService(object):
         except Exception as e:
             logging.getLogger('app').debug(Exception(e), exc_info=True)
             raise CustomException(http_code=500, code='500', message="Internal Server Error")
+
+
+def chatdoclc_openai(request: ChatDocLCRequest):
+    message_id = f"message_id_{datetime.utcnow().strftime('%Y%m%d%H%M%S%f')}"
+
+    chat = ChatOpenAIServices(request)
+    chat.init_system_prompt()
+
+    chat.stream(message_id)
+    print(chat.__dict__)
+    print(chat.answer)
+

@@ -264,6 +264,7 @@ class DocumentLoaderService(object):
             markdown = f"""**Metadata**
 - Filename/URL: {doc[0].metadata.url or doc[0].metadata.filename}
 - Date created: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
+
 **Context**
 """
             markdown += '\n'.join(DocumentLoaderService().iter_markdown_lines(doc))

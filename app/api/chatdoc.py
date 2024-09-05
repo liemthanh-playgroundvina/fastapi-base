@@ -1,5 +1,6 @@
 import json
 import logging
+import os
 from typing import Optional, List, Any
 
 from fastapi import APIRouter, Depends, HTTPException, File, UploadFile, Request, Body, BackgroundTasks
@@ -61,12 +62,12 @@ def embed_doc_queue(
 
         files_path = []
         for file in files:
-            files_path.append(CommonService().save_upload_file(file, save_directory=settings.WORKER_DIRECTORY))
+            files_path.append(CommonService().save_upload_file(file, save_directory=os.path.join(settings.WORKER_DIRECTORY, 'files')))
 
         # Handler urls
         file_urls, web_urls = CommonService().classify_urls(request.urls)
         for url in file_urls:
-            files_path.append(CommonService().save_url_file(url, save_directory=settings.WORKER_DIRECTORY))
+            files_path.append(CommonService().save_url_file(url, save_directory=os.path.join(settings.WORKER_DIRECTORY, 'files')))
 
         # Handler both when empty
         if not files_path and not web_urls:
