@@ -105,7 +105,10 @@ class GoogleSearchService(object):
     @staticmethod
     def google_search(search_term, api_key = settings.GOOGLE_API_KEY, cse_id = settings.GOOGLE_CSE_ID, **kwargs) -> Tuple[List, Dict]:
         service = build("customsearch", "v1", developerKey=api_key)
-        res = service.cse().list(q=search_term, cx=cse_id, excludeTerms="youtube.com", **kwargs).execute()
+        res = service.cse().list(q=search_term,
+                                 cx=cse_id,
+                                 excludeTerms="youtube.com facebook.com instagram.com",
+                                 **kwargs).execute()
         urls = [result["link"] for result in res['items']]
         # urls = list(search(search_term, num_results=3))
 

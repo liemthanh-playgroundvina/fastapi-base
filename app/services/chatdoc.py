@@ -138,7 +138,11 @@ def search_mode(message_id: str, messages: list):
     if response['web_browser_mode']:
         yield search.stream_data(stream_type="SEARCHING", message_id=message_id, data="Searching...")
         question = f"{response['request']['query']} {response['request']['time']}"
-        urls, gg_metadata = GoogleSearchService().google_search(question, num=response['request']['num_link'])
+        urls, gg_metadata = GoogleSearchService().google_search(
+            question,
+            num=response['request']['num_link'],
+            lr=f"lang_{response['request']['language']}",
+        )
         yield search.stream_data(stream_type="SEARCHED", message_id=message_id, data=json.dumps(urls))
         metadata = [search.metadata('check_web_search'), gg_metadata]
         yield search.stream_data(stream_type="METADATA", message_id=message_id, data=json.dumps(metadata))

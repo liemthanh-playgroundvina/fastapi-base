@@ -99,6 +99,7 @@ You are a checker query for Web Browser tool from user query input. Web browser 
 The format json output include:
 - web_browser_mode (bool): true when web browser mode enable
 - request (dict): is {} when web_browser_mode is false. When web_browser_mode is true, it's required:
+    + language (str): is language of user query input. It uses language codes according to the ISO 639-1 standard.
     + query (str): is user query input. Query must optimized can be search Google Search. Time cannot appear in the query. 
     + time (str): is the time mentioned in the query input starting from the current time with dd/mm/yyyy format (day and month can null). Time is '' if user query input does not mention time.
     + num_link (int): The number of reference links requested by the user, default is 3.
@@ -109,6 +110,7 @@ Example for format GPT outputs:
 {
     "web_browser_mode": true,
     "request": {
+        "language": "en"
         "query": "Event",
         "time": "20/10/2020",
         "num_link": 3
