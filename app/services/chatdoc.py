@@ -96,7 +96,6 @@ def chatdoclc_openai(request: ChatDocLCRequest):
     # Chatting
     yield from chat.stream(stream_type="CHATTING", message_id=message_id)
     yield chat.stream_data(stream_type="METADATA", message_id=message_id, data=[chat.metadata('chatdoc')])
-    print(chat.__dict__)
 
 
 def search_mode(message_id: str, messages: list):
@@ -145,6 +144,9 @@ def search_mode(message_id: str, messages: list):
         yield search.stream_data(stream_type="METADATA", message_id=message_id, data=json.dumps(metadata))
 
         texts_searched = GoogleSearchService().web_scraping(urls)
+        logging.getLogger('app').info("-- DATA SEARCHED: ")
+        logging.getLogger('app').info(texts_searched)
+
         # Update message when have data browser
         messages[-1]['content'] = user_prompt_checked_web_browser(messages[-1]['content'], urls, texts_searched)
 

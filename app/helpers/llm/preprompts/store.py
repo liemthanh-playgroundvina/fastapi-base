@@ -85,8 +85,8 @@ Example for plot format:
 def check_web_browser_prompt():
     # System prompt
     system_prompt = f"""You are a helpful assistant chatbot.
-    Knowledge cutoff: 10/2023
-    Current date: {datetime.now().strftime("%d/%m/%Y %H:%M:%S")} with (dd/mm/yyyy h:m:s) format"""
+Knowledge cutoff: 10/2023
+Current date: {datetime.now().strftime("%d/%m/%Y %H:%M:%S")} with (dd/mm/yyyy h:m:s) format"""
     system_prompt += """
 
 # System Prompt
@@ -103,6 +103,8 @@ The format json output include:
     + time (str): is the time mentioned in the query input starting from the current time with dd/mm/yyyy format (day and month can null). Time is '' if user query input does not mention time.
     + num_link (int): The number of reference links requested by the user, default is 3.
 
+Note: Keep language text of user query input. 
+
 Example for format GPT outputs:
 {
     "web_browser_mode": true,
@@ -118,8 +120,8 @@ Example for format GPT outputs:
 def user_prompt_checked_web_browser(user_query: str, urls: list, texts: list):
     # User prompt when have data browser
     user_prompt = """Using data was searched on the internet to answer of user query:
-    <Internet_Data>
-    """
+<Internet_Data>
+"""
     for i in range(0, len(urls)):
         try:
             user_prompt += f"""- URL_{str(i + 1)}: {urls[i]}\n{texts[i].strip()}\n"""
@@ -128,7 +130,7 @@ def user_prompt_checked_web_browser(user_query: str, urls: list, texts: list):
 
     user_prompt += f"""<\End_Internet_Data>
 
-    User query input: {user_query}  
-    """
+User query input: {user_query}  
+"""
 
     return user_prompt
