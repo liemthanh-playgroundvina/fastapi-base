@@ -126,7 +126,7 @@ def search_mode(message_id: str, messages: list):
         "temperature": 0.5,
         "max_tokens": 4096,
     }
-    search_request = BaseChatRequest(messages=messages, chat_model=search_model)
+    search_request = BaseChatRequest(messages=messages[1:], chat_model=search_model)
     search = ChatOpenAIServices(search_request)
     search.messages = [
         {"role": "system", "content": check_web_browser_prompt()},
