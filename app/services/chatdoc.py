@@ -93,14 +93,15 @@ def chatdoclc_openai(request: ChatDocLCRequest):
     chat = ChatOpenAIServices(request)
     chat.init_system_prompt()
 
-    search = search_mode(message_id, chat.messages)
-    for event in search:
-        yield from event
-
-    try:
-        next(search)
-    except StopIteration as e:
-        chat.messages = e.value
+    yield search_mode(message_id, chat.messages)
+    # search = search_mode(message_id, chat.messages)
+    # for event in search:
+    #     yield from event
+    #
+    # try:
+    #     next(search)
+    # except StopIteration as e:
+    #     chat.messages = e.value
 
     yield from chat.stream(stream_type="RESPONDING", message_id=message_id)
     yield chat.stream_data(stream_type="METADATA", message_id=message_id, data=chat.metadata('chatdoc'))
