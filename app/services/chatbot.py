@@ -50,7 +50,7 @@ def chat_openai(request: Union[ChatRequest, ChatVisionRequest]):
 
     # Init Chat
     chat = ChatOpenAIServices(request)
-    chat.init_system_prompt()
+    chat.init_system_prompt(request.store_name)
 
     # Searching
     yield from search_mode(message_id, chat.messages)

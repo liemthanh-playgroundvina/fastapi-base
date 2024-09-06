@@ -22,7 +22,7 @@ router = APIRouter()
 )
 def chat(request: ChatRequest) -> Any:
     """
-    Chatbot & GPTs
+    Chatbot & GPTs & Web Search
 
     Params:
 
@@ -36,18 +36,16 @@ def chat(request: ChatRequest) -> Any:
     Returns:
 
         - response:
-            [DATA_STREAMING] <string_data> [DONE] [METADATA] <json_metadata>
+            [METADATA] -> [CHATTING]... -> [METADATA]
 
-        - in <string_data>:
+        - in <CHATTING>:
             - '\\n' is replaced to '<!<newline>!>'
-
+            - With Draw Plot Tool: <PLOT> json_plot <\PLOT>
     Note:
 
-        - With Web Browser Tool:
-            [SEARCHING] [END_SEARCHING]<list_url> [DATA_STREAMING] <string_data> [DONE] [METADATA] <json_metadata>
+        - When Web Search is enabled (auto check):
+            [SEARCHING] -> [SEARCHED]... -> [METADATA] -> [CHATTING]... -> [METADATA]
 
-        - With Draw Plot Tool:
-            <PLOT> json_plot <\PLOT>
     """
     request = ChatRequest(**request)
     return ChatService().chat(request)
@@ -73,17 +71,17 @@ def chat_vision(request: ChatVisionRequest) -> Any:
 
     Returns:
 
-        response: [DATA_STREAMING] <string_data> [DONE] [METADATA] <json_metadata>
+        - response:
+            [METADATA] -> [CHATTING]... -> [METADATA]
 
-        in <string_data>: '\\n' is replaced to '<!<newline>!>'
-
+        - in <CHATTING>:
+            - '\\n' is replaced to '<!<newline>!>'
+            - With Draw Plot Tool: <PLOT> json_plot <\PLOT>
     Note:
 
-        - With Web Browser Tool:
-            [SEARCHING] [END_SEARCHING]<list_url> [DATA_STREAMING] <string_data> [DONE] [METADATA] <json_metadata>
+        - When Web Search is enabled (auto check):
+            [SEARCHING] -> [SEARCHED]... -> [METADATA] -> [CHATTING]... -> [METADATA]
 
-        - With Draw Plot Tool:
-            <PLOT> json_plot <\PLOT>
 
         - Example for message with image: https://readme.fireworks.ai/docs/querying-vision-language-models#chat-completions-api
 
