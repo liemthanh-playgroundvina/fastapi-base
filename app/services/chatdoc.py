@@ -123,19 +123,19 @@ def search_mode(message_id: str, messages: list):
 
 
     """
-    from app.schemas.chatbot import ChatModel, BaseChatRequest
+    from app.schemas.chatbot import BaseChatRequest
     from app.helpers.llm.preprompts.store import check_web_browser_prompt, user_prompt_checked_web_browser
     from app.services.common import GoogleSearchService
 
     logging.getLogger('app').info("-- CHECK MODE WEB SEARCH:")
 
     # Check search mode
-    search_model = ChatModel(
-        platform="OpenAI",
-        model_name="gpt-4o-mini",
-        temperature=0.5,
-        max_tokens=4096,
-    )
+    search_model = {
+        "platform": "OpenAI",
+        "model_name": "gpt-4o-mini",
+        "temperature": 0.5,
+        "max_tokens": 4096,
+    }
     search_request = BaseChatRequest(messages=messages, chat_model=search_model)
     search = ChatOpenAIServices(search_request)
     search.messages = [
