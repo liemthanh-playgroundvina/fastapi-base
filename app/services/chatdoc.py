@@ -2,9 +2,6 @@ import json
 import inspect
 import logging
 from datetime import datetime
-from re import search
-
-from pyexpat.errors import messages
 
 from app.core.config import settings
 from app.helpers.exception_handler import CustomException
@@ -106,7 +103,7 @@ def search_mode(message_id: str, messages: list):
     """
      Search data from user input
 
-     OpenAI response:
+     response:
         {
             "web_browser_mode": true,
             "request": {
@@ -115,7 +112,6 @@ def search_mode(message_id: str, messages: list):
                 "num_link": 3
             }
         }
-
 
     """
     from app.schemas.chatbot import BaseChatRequest
@@ -137,11 +133,11 @@ def search_mode(message_id: str, messages: list):
         {"role": "system", "content": check_web_browser_prompt()},
         {"role": "user", "content": f"""Check mode with user query input is: \n{search.messages_to_str()}\n"""}
     ]
-    yield search.stream_data(stream_type="SEARCHING", message_id=message_id, data="Searching...")
     response = search.function_calling()
 
     # Stream search mode
     if response['web_browser_mode']:
+        yield search.stream_data(stream_type="SEARCHING", message_id=message_id, data="Searching...")
         question = f"{response['request']['query']} {response['request']['time']}"
         urls, gg_metadata = GoogleSearchService().google_search(question, num=response['request']['num_link'])
         yield search.stream_data(stream_type="SEARCHED", message_id=message_id, data=json.dumps(urls))
@@ -153,5 +149,4 @@ def search_mode(message_id: str, messages: list):
         messages[-1]['content'] = user_prompt_checked_web_browser(messages[-1]['content'], urls, texts_searched)
 
     else:
-        yield search.stream_data(stream_type="SEARCHED", message_id=message_id, data="Searching...")
         yield search.stream_data(stream_type="METADATA", message_id=message_id, data=[search.metadata('check_web_search')])

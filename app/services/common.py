@@ -205,6 +205,12 @@ class ChatOpenAIServices:
     def metadata(self, task_name: str):
         return {
             "task": task_name,
+            "chat_model":{
+                    "platform": self.host,
+                    "model_name": self.model,
+                    "temperature": self.temperature,
+                    "max_tokens": self.max_tokens,
+            },
             "response": {
                 "input": self.messages_to_str(),
                 "output": self.answer,
