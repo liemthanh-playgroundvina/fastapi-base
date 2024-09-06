@@ -114,3 +114,21 @@ Example for format GPT outputs:
 }
 """
     return system_prompt
+
+def user_prompt_checked_web_browser(user_query: str, urls: list, texts: list):
+    # User prompt when have data browser
+    user_prompt = """Using data was searched on the internet to answer of user query:
+    <Internet_Data>
+    """
+    for i in range(0, len(urls)):
+        try:
+            user_prompt += f"""- URL_{str(i + 1)}: {urls[i]}\n{texts[i].strip()}\n"""
+        except:
+            pass
+
+    user_prompt += f"""<\End_Internet_Data>
+
+    User query input: {user_query}  
+    """
+
+    return user_prompt

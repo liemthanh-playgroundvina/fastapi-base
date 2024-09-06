@@ -2,6 +2,9 @@ import json
 import inspect
 import logging
 from datetime import datetime
+from re import search
+
+from pyexpat.errors import messages
 
 from app.core.config import settings
 from app.helpers.exception_handler import CustomException
@@ -86,10 +89,71 @@ class ChatDocService(object):
 def chatdoclc_openai(request: ChatDocLCRequest):
     message_id = f"message_id_{datetime.utcnow().strftime('%Y%m%d%H%M%S%f')}"
 
+    # Chat
     chat = ChatOpenAIServices(request)
     chat.init_system_prompt()
 
-    yield from chat.stream(message_id, stream_type="RESPONDING")
-    print(chat.__dict__)
-    print(chat.answer)
+    search = search_mode(message_id, chat.messages)
+    for event in search:
+        yield from event
 
+    try:
+        next(search)
+    except StopIteration as e:
+        chat.messages = e.value
+
+    yield from chat.stream(stream_type="RESPONDING", message_id=message_id)
+    yield chat.stream_data(stream_type="METADATA", message_id=message_id, data=chat.metadata('chatdoc'))
+    print(chat.__dict__)
+
+
+def search_mode(message_id: str, messages: list):
+    """
+     Search data from user input
+
+     OpenAI response:
+        {
+            "web_browser_mode": true,
+            "request": {
+                "query": "Event",
+                "time": "20/10/2020",
+                "num_link": 3
+            }
+        }
+
+
+    """
+    from app.schemas.chatbot import ChatModel, BaseChatRequest
+    from app.helpers.llm.preprompts.store import check_web_browser_prompt, user_prompt_checked_web_browser
+    from app.services.common import GoogleSearchService
+
+    logging.getLogger('app').info("-- CHECK MODE WEB SEARCH:")
+
+    # Check search mode
+    search_model = ChatModel(
+        platform="OpenAI",
+        model_name="gpt-4o-mini",
+        temperature=0.5,
+        max_tokens=4096,
+    )
+    search_request = BaseChatRequest(messages=messages, chat_model=search_model)
+    search = ChatOpenAIServices(search_request)
+    search.messages = [
+        {"role": "system", "content": check_web_browser_prompt()},
+        {"role": "user", "content": f"""Check mode with user query input is: \n{search.messages_to_str()}\n"""}
+    ]
+    response = search.function_calling()
+
+    # Stream search mode
+    if response['web_browser_mode']:
+        yield search.stream_data(stream_type="SEARCHING", message_id=message_id, data="Searching...")
+        question = f"{response['request']['query']} {response['request']['time']}"
+        urls = GoogleSearchService().google_search(question, num=response['request']['num_link'])
+        yield search.stream_data(stream_type="SEARCHED", message_id=message_id, data=json.dumps(urls))
+        texts_searched = GoogleSearchService().web_scraping(urls)
+        messages[-1]['content'] = user_prompt_checked_web_browser(messages[-1]['content'], urls, texts_searched)
+
+        return messages
+
+    else:
+        return messages

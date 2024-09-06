@@ -103,7 +103,7 @@ class GoogleSearchService(object):
     __instance = None
 
     @staticmethod
-    def google_search(search_term, api_key = settings.GOOGLE_API_KEY, cse_id = settings.GOOGLE_CSE_ID, **kwargs):
+    def google_search(search_term, api_key = settings.GOOGLE_API_KEY, cse_id = settings.GOOGLE_CSE_ID, **kwargs) -> List:
         service = build("customsearch", "v1", developerKey=api_key)
         res = service.cse().list(q=search_term, cx=cse_id, excludeTerms="youtube.com", **kwargs).execute()
         urls = [result["link"] for result in res['items']]
@@ -112,7 +112,7 @@ class GoogleSearchService(object):
         return urls
 
     @staticmethod
-    def web_scraping(urls):
+    def web_scraping(urls) -> List:
         texts = []
         for url in urls:
             try:
@@ -167,15 +167,15 @@ class ChatOpenAIServices:
         return mess_str
 
     @staticmethod
-    def stream_data(type: str, message_id: str, data: Any):
+    def stream_data(stream_type: str, message_id: str, data: Any):
         return {
-            "event": type,
+            "event": stream_type,
             "id": message_id,
             "retry": settings.RETRY_TIMEOUT,
             "data": data,
         }
 
-    def stream(self, message_id: str, stream_type: str = "RESPONDING"):
+    def stream(self, stream_type: str, message_id: str):
         # Log message
         logging.getLogger('app').info(f"-- TYPE: {stream_type}. PROMPT: ")
         logging.getLogger('app').info(self.messages_to_str())
@@ -196,7 +196,6 @@ class ChatOpenAIServices:
 
 
     def metadata(self, task_name: str):
-
         return {
             "task": task_name,
             "response": {
@@ -228,31 +227,7 @@ class ChatOpenAIServices:
             response_format={"type": "json_object"},
             messages=self.messages
         )
-        output = json.loads(response.choices[0].message.content, strict=False)
+        self.answer = response.choices[0].message.content
+        output = json.loads(self.answer, strict=False)
 
         return output
-
-    # def search_mode(messages):
-    #     # Check check_web_browser
-    #     logging.getLogger('app').info("-- CHECK MODE WEB SEARCH:")
-    #
-    #     response, res_metadata = check_web_browser(messages[1:])
-    #     logging.getLogger('app').info(str(response))
-    #
-    #     if response['web_browser_mode']:
-    #         request['chat_model']['temperature'] = 0.5
-    #         yield {
-    #             "event": "new_message",
-    #             "id": message_id,
-    #             "retry": settings.RETRY_TIMEOUT,
-    #             "data": "[SEARCHING]",
-    #         }
-    #         question = f"{response['request']['query']} {response['request']['time']}"
-    #         urls = GoogleSearchService().google_search(question, num=response['request']['num_link'])
-    #         messages[-1]['content'] = update_query_web_browsing(messages[-1]['content'], urls)
-    #         yield {
-    #             "event": "new_message",
-    #             "id": message_id,
-    #             "retry": settings.RETRY_TIMEOUT,
-    #             "data": f"[END_SEARCHING]{json.dumps(urls)}",
-    #         }
