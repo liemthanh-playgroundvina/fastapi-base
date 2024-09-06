@@ -49,6 +49,7 @@ def chat(request: ChatRequest) -> Any:
         - With Draw Plot Tool:
             <PLOT> json_plot <\PLOT>
     """
+    request = ChatRequest(**request)
     return ChatService().chat(request)
 
 
@@ -90,4 +91,5 @@ def chat_vision(request: ChatVisionRequest) -> Any:
 
         - Limit: 10MB (Base64 image), 5MB (URL image)
     """
+    request = ChatVisionRequest(**request)
     return ChatService().chat(request)

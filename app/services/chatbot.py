@@ -1,16 +1,12 @@
 import json
-import httpx
 import logging
 from datetime import datetime
-from typing import Optional, Tuple, Text, Dict, List
+from typing import Optional, Tuple, Text, Dict, List, Union
 
 from app.helpers.exception_handler import CustomException
-from app.core.config import settings
-from app.helpers.llm.preprompts.store import get_system_prompt, check_web_browser_prompt
-from app.services.common import CommonService, GoogleSearchService
+from app.schemas.chatbot import ChatRequest, ChatVisionRequest
+from app.services.common import ChatOpenAIServices
 
-from openai import OpenAI
-import tiktoken
 from sse_starlette import EventSourceResponse
 
 
@@ -18,7 +14,7 @@ class ChatService(object):
     __instance = None
 
     @staticmethod
-    def chat(request):
+    def chat(request: Union[ChatRequest, ChatVisionRequest]):
         """
         "example": {
                 "messages": [
@@ -36,7 +32,7 @@ class ChatService(object):
         """
         try:
             # Ask bot
-            if request['chat_model']["platform"] in ["OpenAI", "local"]:
+            if request.chat_model.platform in ["OpenAI", "local"]:
                 return EventSourceResponse(chat_openai(request))
             # elif request['chat_model']["platform"] == "Google":
             #     ...
@@ -49,208 +45,78 @@ class ChatService(object):
             raise CustomException(http_code=500, code='500', message="Internal Server Error")
 
 
-def chat_openai(request: dict):
-    logging.getLogger('app').info(f"*** Chatbot: {request['chat_model']['model_name']} ***")
+def chat_openai(request: Union[ChatRequest, ChatVisionRequest]):
     message_id = f"message_id_{datetime.utcnow().strftime('%Y%m%d%H%M%S%f')}"
 
-    # Check host
-    if request['chat_model']["platform"] in ["OpenAI"]:
-        client = OpenAI(api_key=settings.OPENAI_API_KEY)
-        model = request['chat_model']['model_name']
-    elif request['chat_model']["platform"] in ["local"]:
-        client = OpenAI(
-            base_url=settings.LLM_URL,
-            default_headers={"x-foo": "true"},
-            http_client=httpx.Client(verify=False)
-        )
-        model = request['chat_model']['model_name']
-    else:
-        raise ValueError(f"""Don't existed {request['chat_model']["platform"]} platform""")
+    # Init Chat
+    chat = ChatOpenAIServices(request)
+    chat.init_system_prompt()
 
-    # Get system prompt follow store name
-    messages = request['messages']
-    if messages[0]['role'] != "system":
-        messages = [{"role": "system", "content": "You are an assistant."}] + messages
+    # Searching
+    yield from search_mode(message_id, chat.messages)
 
-    store_name = request.get("store_name", "")
-    if store_name:
-        messages[0]['content'] =  get_system_prompt(store_name= store_name)
-    else:
-        messages[0]['content'] =  get_system_prompt(input_pmt=messages[0]['content'])
+    # Chatting
+    yield from chat.stream(stream_type="CHATTING", message_id=message_id)
+    yield chat.stream_data(stream_type="METADATA", message_id=message_id, data=[chat.metadata('chatdoc')])
 
-    # Check check_web_browser
+
+def search_mode(message_id: str, messages: list):
+    """
+     Search data from user input
+
+     response:
+        {
+            "web_browser_mode": true,
+            "request": {
+                "language": "en"
+                "query": "Event",
+                "time": "20/10/2020",
+                "num_link": 3
+            }
+        }
+
+    """
+    from app.schemas.chatbot import BaseChatRequest
+    from app.helpers.llm.preprompts.store import check_web_browser_prompt, user_prompt_checked_web_browser
+    from app.services.common import GoogleSearchService
+
     logging.getLogger('app').info("-- CHECK MODE WEB SEARCH:")
 
-    response, res_metadata = check_web_browser(messages[1:])
-    logging.getLogger('app').info(str(response))
-
-    if response['web_browser_mode']:
-        request['chat_model']['temperature'] = 0.5
-        yield {
-            "event": "new_message",
-            "id": message_id,
-            "retry": settings.RETRY_TIMEOUT,
-            "data": "[SEARCHING]",
-        }
-        question = f"{response['request']['query']} {response['request']['time']}"
-        urls, _ = GoogleSearchService().google_search(question, num=response['request']['num_link'])
-        messages[-1]['content'] = update_query_web_browsing(messages[-1]['content'], urls)
-        yield {
-            "event": "new_message",
-            "id": message_id,
-            "retry": settings.RETRY_TIMEOUT,
-            "data": f"[END_SEARCHING]{json.dumps(urls)}",
-        }
-
-    # Log message
-    logging.getLogger('app').info("-- PROMPT CHATBOT: " + (store_name or ""))
-    mess_str = ""
-    for mess in messages:
-        mess_str += "\n" + json.dumps(mess, ensure_ascii=False)
-    logging.getLogger('app').info(mess_str)
-
-    # Model
-    yield {
-        "event": "new_message",
-        "id": message_id,
-        "retry": settings.RETRY_TIMEOUT,
-        "data": "[DATA_STREAMING]",
+    # Check search mode
+    search_model = {
+        "platform": "OpenAI",
+        "model_name": "gpt-4o-mini",
+        "temperature": 0.5,
+        "max_tokens": 4096,
     }
-    openai_stream = client.chat.completions.create(
-        model=model,
-        temperature=request['chat_model']['temperature'],
-        messages=messages,
-        max_tokens=request['chat_model']['max_tokens'],
-        stream=True,
-    )
-
-    answer = ""
-    for line in openai_stream:
-        if line.choices[0].delta.content:
-            current_response = line.choices[0].delta.content
-            answer += current_response
-            yield {
-                "event": "new_message",
-                "id": message_id,
-                "retry": settings.RETRY_TIMEOUT,
-                "data": current_response.replace("\n", "<!<newline>!>"),
-            }
-    # End stream
-    yield {
-        "event": "new_message",
-        "id": message_id,
-        "retry": settings.RETRY_TIMEOUT,
-        "data": "[DONE]",
-    }
-    # Metadata
-    yield {
-        "event": "new_message",
-        "id": message_id,
-        "retry": settings.RETRY_TIMEOUT,
-        "data": "[METADATA]",
-    }
-    input_str = ""
-    for mess in messages:
-        input_str += f"{mess['content']}\n"
-    input_str = input_str.strip()
-
-    input_tokens = num_tokens_from_string_openai(input_str, request['chat_model']['model_name'])
-    output_tokens = num_tokens_from_string_openai(answer, request['chat_model']['model_name'])
-
-    metadata = {
-        "platform": request['chat_model']['platform'],
-        "model": request['chat_model']['model_name'],
-        "temperature": request['chat_model']['temperature'],
-        "max_tokens": request['chat_model']['max_tokens'],
-        "input": input_str,
-        "output": answer,
-        "usage": {
-            "input_tokens": input_tokens + 24,
-            "output_tokens": output_tokens,
-            "search_tokens": res_metadata,
-        },
-    }
-    yield {
-        "event": "new_message",
-        "id": message_id,
-        "retry": settings.RETRY_TIMEOUT,
-        "data": metadata,
-    }
-
-
-def check_web_browser(list_message: list, hostname="OpenAI", model="gpt-4o-mini"):
-    """Using OpenAI check query need using web browser or not"""
-
-    # User prompt
-    messages_str = ""
-    for messa in list_message:
-        messages_str += "\n" + json.dumps(messa, ensure_ascii=False)
-    user_prompt = f"""Check mode with user query input is: \n{messages_str}\n"""
-    messages = [
+    search_request = BaseChatRequest(messages=messages[1:], chat_model=search_model)
+    search = ChatOpenAIServices(search_request)
+    search.messages = [
         {"role": "system", "content": check_web_browser_prompt()},
-        {"role": "user", "content": user_prompt}
+        {"role": "user", "content": f"""Check mode with user query input is: \n{search.messages_to_str()}\n"""}
     ]
+    response = search.function_calling()
 
-    # Log message
-    logging.getLogger('app').info("-- PROMPT WEB_BROWSER_MODE:")
-    mess_str = ""
-    for mess in messages:
-        mess_str += "\n" + json.dumps(mess, ensure_ascii=False)
-    logging.getLogger('app').info(mess_str)
+    # Stream search mode
+    if response['web_browser_mode']:
+        yield search.stream_data(stream_type="SEARCHING", message_id=message_id, data="Searching...")
+        question = f"{response['request']['query']} {response['request']['time']}"
+        urls, gg_metadata = GoogleSearchService().google_search(
+            question,
+            num=response['request']['num_link'],
+            lr=f"lang_{response['request']['language']}",
+        )
+        yield search.stream_data(stream_type="SEARCHED", message_id=message_id, data=json.dumps(urls))
+        metadata = [search.metadata('check_web_search'), gg_metadata]
+        yield search.stream_data(stream_type="METADATA", message_id=message_id, data=json.dumps(metadata))
 
-    # Model
-    client = OpenAI(api_key=settings.OPENAI_API_KEY)
-    response = client.chat.completions.create(
-        model=model,
-        temperature=0.7,
-        response_format={"type": "json_object"},
-        messages=messages
-    )
-    output = json.loads(response.choices[0].message.content, strict=False)
+        texts_searched = GoogleSearchService().web_scraping(urls)
+        logging.getLogger('app').info("-- DATA SEARCHED: ")
+        logging.getLogger('app').info(texts_searched)
 
-    input_str = ""
-    for mess in messages:
-        input_str += f"{mess['content']}\n"
-    input_str = input_str.strip()
+        # Update message when have data browser
+        messages[-1]['content'] = user_prompt_checked_web_browser(messages[-1]['content'], urls, texts_searched)
 
-    metadata = {
-        "task": "generate_prompt",
-        "model": model,
-        "usage": {
-            "openAI": {"unit": "tokens/$",
-                       "input": num_tokens_from_string_openai(input_str, model),
-                       "output": num_tokens_from_string_openai(response.choices[0].message.content, model),
-                       "price": "https://openai.com/api/pricing/"
-                       }
-        }
-    }
-
-    return output, metadata
-
-
-def update_query_web_browsing(user_query: str, urls: list):
-    """Web Search & Update Context-Query"""
-    texts = GoogleSearchService().web_scraping(urls)
-
-    user_prompt = """Using data was searched on the internet to answer of user query:
-<Internet_Data>
-"""
-    for i in range(0, len(urls)):
-        try:
-            user_prompt += f"""- URL_{str(i + 1)}: {urls[i]}\n{texts[i].strip()}\n"""
-        except:
-            pass
-
-    user_prompt += f"""<\End_Internet_Data>
-
-User query input: {user_query}  
-"""
-
-    return user_prompt
-
-
-def num_tokens_from_string_openai(string: str, model_name: str = "gpt-4o-mini") -> int:
-    encoding_name = "o200k_base"
-    encoding = tiktoken.get_encoding(encoding_name)
-    num_tokens = len(encoding.encode(string))
-    return num_tokens
+    else:
+        metadata = [search.metadata('check_web_search')]
+        yield search.stream_data(stream_type="METADATA", message_id=message_id, data=json.dumps(metadata))
