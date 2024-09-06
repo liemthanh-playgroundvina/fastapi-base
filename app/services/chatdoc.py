@@ -141,12 +141,13 @@ def search_mode(message_id: str, messages: list):
         question = f"{response['request']['query']} {response['request']['time']}"
         urls, gg_metadata = GoogleSearchService().google_search(question, num=response['request']['num_link'])
         yield search.stream_data(stream_type="SEARCHED", message_id=message_id, data=json.dumps(urls))
-        yield search.stream_data(stream_type="METADATA", message_id=message_id,
-                                 data=[search.metadata('check_web_search'), gg_metadata])
+        metadata = [search.metadata('check_web_search'), gg_metadata]
+        yield search.stream_data(stream_type="METADATA", message_id=message_id, data=json.dumps(metadata))
 
         texts_searched = GoogleSearchService().web_scraping(urls)
         # Update message when have data browser
         messages[-1]['content'] = user_prompt_checked_web_browser(messages[-1]['content'], urls, texts_searched)
 
     else:
-        yield search.stream_data(stream_type="METADATA", message_id=message_id, data=[search.metadata('check_web_search')])
+        metadata = [search.metadata('check_web_search')]
+        yield search.stream_data(stream_type="METADATA", message_id=message_id, data=json.dumps(metadata))
