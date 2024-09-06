@@ -93,7 +93,7 @@ def chatdoclc_openai(request: ChatDocLCRequest):
     chat = ChatOpenAIServices(request)
     chat.init_system_prompt()
 
-    yield search_mode(message_id, chat.messages)
+    yield from search_mode(message_id, chat.messages)
     # search = search_mode(message_id, chat.messages)
     # for event in search:
     #     yield from event
@@ -144,6 +144,7 @@ def search_mode(message_id: str, messages: list):
         {"role": "user", "content": f"""Check mode with user query input is: \n{search.messages_to_str()}\n"""}
     ]
     response = search.function_calling()
+    print(response)
 
     # Stream search mode
     if response['web_browser_mode']:
