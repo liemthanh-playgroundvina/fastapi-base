@@ -1,18 +1,16 @@
 import json
 import logging
 import os
-import uuid
 import mimetypes
-
+import re
 import uuid
-
 import httpx
 import requests
 from datetime import datetime
-from typing import List, Dict, Tuple, Iterator
-import re
-from fastapi import UploadFile
 from urllib.parse import urlparse
+
+from typing import List, Dict, Tuple, Iterator, Any
+from fastapi import UploadFile
 from requests.exceptions import HTTPError
 
 from app.core.config import settings
@@ -168,17 +166,20 @@ class ChatOpenAIServices:
             mess_str += "\n" + json.dumps(mess, ensure_ascii=False)
         return mess_str
 
-    def stream(self, message_id: str, stream_type: str = "RESPOND"):
+    @staticmethod
+    def stream_data(type: str, message_id: str, data: Any):
+        return {
+            "event": type,
+            "id": message_id,
+            "retry": settings.RETRY_TIMEOUT,
+            "data": data,
+        }
+
+    def stream(self, message_id: str, stream_type: str = "RESPONDING"):
         # Log message
         logging.getLogger('app').info(f"-- TYPE: {stream_type}. PROMPT: ")
         logging.getLogger('app').info(self.messages_to_str())
 
-        yield {
-            "event": "new_message",
-            "id": message_id,
-            "retry": settings.RETRY_TIMEOUT,
-            "data": f"[{stream_type}ING]",
-        }
         stream = self.client.chat.completions.create(
             messages=self.messages,
             model=self.model,
@@ -191,18 +192,30 @@ class ChatOpenAIServices:
             if line.choices[0].delta.content:
                 current_response = line.choices[0].delta.content
                 self.answer += current_response
-                yield {
-                    "event": "new_message",
-                    "id": message_id,
-                    "retry": settings.RETRY_TIMEOUT,
-                    "data": current_response.replace("\n", "<!<newline>!>"),
-                }
-        yield {
-            "event": "new_message",
-            "id": message_id,
-            "retry": settings.RETRY_TIMEOUT,
-            "data": f"[{stream_type}ED]",
+                yield self.stream_data(stream_type, message_id, current_response.replace("\n", "<!<newline>!>"))
+
+
+    def metadata(self, task_name: str):
+
+        return {
+            "task": task_name,
+            "response": {
+                "input": self.messages_to_str(),
+                "output": self.answer,
+            },
+            "usage": {
+                "input": self.num_tokens_from_string_openai(self.messages_to_str()),
+                "output": self.num_tokens_from_string_openai(self.answer),
+            }
         }
+
+    @staticmethod
+    def num_tokens_from_string_openai(string: str) -> int:
+        import tiktoken
+        encoding_name = "o200k_base"
+        encoding = tiktoken.get_encoding(encoding_name)
+        num_tokens = len(encoding.encode(string))
+        return num_tokens
 
     def function_calling(self) -> dict:
         # Log message
@@ -219,5 +232,27 @@ class ChatOpenAIServices:
 
         return output
 
-
-
+    # def search_mode(messages):
+    #     # Check check_web_browser
+    #     logging.getLogger('app').info("-- CHECK MODE WEB SEARCH:")
+    #
+    #     response, res_metadata = check_web_browser(messages[1:])
+    #     logging.getLogger('app').info(str(response))
+    #
+    #     if response['web_browser_mode']:
+    #         request['chat_model']['temperature'] = 0.5
+    #         yield {
+    #             "event": "new_message",
+    #             "id": message_id,
+    #             "retry": settings.RETRY_TIMEOUT,
+    #             "data": "[SEARCHING]",
+    #         }
+    #         question = f"{response['request']['query']} {response['request']['time']}"
+    #         urls = GoogleSearchService().google_search(question, num=response['request']['num_link'])
+    #         messages[-1]['content'] = update_query_web_browsing(messages[-1]['content'], urls)
+    #         yield {
+    #             "event": "new_message",
+    #             "id": message_id,
+    #             "retry": settings.RETRY_TIMEOUT,
+    #             "data": f"[END_SEARCHING]{json.dumps(urls)}",
+    #         }
