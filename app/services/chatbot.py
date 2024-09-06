@@ -93,7 +93,7 @@ def chat_openai(request: dict):
             "data": "[SEARCHING]",
         }
         question = f"{response['request']['query']} {response['request']['time']}"
-        urls = GoogleSearchService().google_search(question, num=response['request']['num_link'])
+        urls, _ = GoogleSearchService().google_search(question, num=response['request']['num_link'])
         messages[-1]['content'] = update_query_web_browsing(messages[-1]['content'], urls)
         yield {
             "event": "new_message",

@@ -89,22 +89,16 @@ class ChatDocService(object):
 def chatdoclc_openai(request: ChatDocLCRequest):
     message_id = f"message_id_{datetime.utcnow().strftime('%Y%m%d%H%M%S%f')}"
 
-    # Chat
+    # Init Chat
     chat = ChatOpenAIServices(request)
     chat.init_system_prompt()
 
+    # Searching
     yield from search_mode(message_id, chat.messages)
-    # search = search_mode(message_id, chat.messages)
-    # for event in search:
-    #     yield from event
-    #
-    # try:
-    #     next(search)
-    # except StopIteration as e:
-    #     chat.messages = e.value
 
-    yield from chat.stream(stream_type="RESPONDING", message_id=message_id)
-    yield chat.stream_data(stream_type="METADATA", message_id=message_id, data=chat.metadata('chatdoc'))
+    # Chatting
+    yield from chat.stream(stream_type="CHATTING", message_id=message_id)
+    yield chat.stream_data(stream_type="METADATA", message_id=message_id, data=[chat.metadata('chatdoc')])
     print(chat.__dict__)
 
 
@@ -143,19 +137,21 @@ def search_mode(message_id: str, messages: list):
         {"role": "system", "content": check_web_browser_prompt()},
         {"role": "user", "content": f"""Check mode with user query input is: \n{search.messages_to_str()}\n"""}
     ]
+    yield search.stream_data(stream_type="SEARCHING", message_id=message_id, data="Searching...")
     response = search.function_calling()
-    print(response)
 
     # Stream search mode
     if response['web_browser_mode']:
-        yield search.stream_data(stream_type="SEARCHING", message_id=message_id, data="Searching...")
         question = f"{response['request']['query']} {response['request']['time']}"
-        urls = GoogleSearchService().google_search(question, num=response['request']['num_link'])
+        urls, gg_metadata = GoogleSearchService().google_search(question, num=response['request']['num_link'])
         yield search.stream_data(stream_type="SEARCHED", message_id=message_id, data=json.dumps(urls))
+        yield search.stream_data(stream_type="METADATA", message_id=message_id,
+                                 data=[search.metadata('check_web_search'), gg_metadata])
+
         texts_searched = GoogleSearchService().web_scraping(urls)
+        # Update message when have data browser
         messages[-1]['content'] = user_prompt_checked_web_browser(messages[-1]['content'], urls, texts_searched)
 
-        return messages
-
     else:
-        return messages
+        yield search.stream_data(stream_type="SEARCHED", message_id=message_id, data="Searching...")
+        yield search.stream_data(stream_type="METADATA", message_id=message_id, data=[search.metadata('check_web_search')])

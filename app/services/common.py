@@ -103,13 +103,20 @@ class GoogleSearchService(object):
     __instance = None
 
     @staticmethod
-    def google_search(search_term, api_key = settings.GOOGLE_API_KEY, cse_id = settings.GOOGLE_CSE_ID, **kwargs) -> List:
+    def google_search(search_term, api_key = settings.GOOGLE_API_KEY, cse_id = settings.GOOGLE_CSE_ID, **kwargs) -> Tuple[List, Dict]:
         service = build("customsearch", "v1", developerKey=api_key)
         res = service.cse().list(q=search_term, cx=cse_id, excludeTerms="youtube.com", **kwargs).execute()
         urls = [result["link"] for result in res['items']]
         # urls = list(search(search_term, num_results=3))
 
-        return urls
+        metadata = {
+            "task": "google_search",
+            "usage": {
+                "num_link": kwargs.get('num', None),
+            }
+        }
+
+        return urls, metadata
 
     @staticmethod
     def web_scraping(urls) -> List:
@@ -120,7 +127,7 @@ class GoogleSearchService(object):
             except:
                 continue
             if response.ok:
-                soup = BeautifulSoup(response.content)
+                soup = BeautifulSoup(response.content, features="html.parser")
                 text = soup.text.replace("\n", " ")
                 text = " ".join(text.split())
                 if len(text.split()) < 50:
