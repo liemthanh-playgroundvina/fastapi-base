@@ -1,10 +1,12 @@
 import json
 import inspect
 import logging
+import os
 from datetime import datetime
 
 from app.core.config import settings
 from app.helpers.exception_handler import CustomException
+from app.helpers.llm.preprompts.store import user_prompt_add_document_lc
 from app.mq_main import celery_execute, redis
 from app.schemas.base import DataResponse
 from app.schemas.chatdoc import ChatDocLCRequest
@@ -87,18 +89,18 @@ def chatdoclc_openai(request: ChatDocLCRequest):
     message_id = f"message_id_{datetime.utcnow().strftime('%Y%m%d%H%M%S%f')}"
 
     # Init Chat
-    chat = ChatOpenAIServices(request)
-    chat.init_system_prompt()
+    chatdoc = ChatOpenAIServices(request)
+    chatdoc.init_system_prompt()
 
     # Add document into LLM
     with open(os.path.join(settings.WORKER_DIRECTORY, "chatdoc/lc", f"{request.data_id}.md"), 'r', encoding='utf-8') as file:
         document = file.read()
-    messages[-1]['content'] = user_prompt_checked_web_browser(messages[-1]['content'], urls, texts_searched)
+    chatdoc.messages[-1]['content'] = user_prompt_add_document_lc(chatdoc.messages[-1]['content'], document)
 
     # Chatting
-    yield from chat.stream(stream_type="CHATTING", message_id=message_id)
-    chat_metadata = [chat.metadata('chatdoc')]
-    yield chat.stream_data(stream_type="METADATA", message_id=message_id, data=json.dumps(chat_metadata))
+    yield from chatdoc.stream(stream_type="CHATTING", message_id=message_id)
+    chat_metadata = [chatdoc.metadata('chatdoc')]
+    yield chatdoc.stream_data(stream_type="METADATA", message_id=message_id, data=json.dumps(chat_metadata))
 
     # Done
-    yield chat.stream_data(stream_type="DONE", message_id=message_id, data="DONE")
+    yield chatdoc.stream_data(stream_type="DONE", message_id=message_id, data="DONE")

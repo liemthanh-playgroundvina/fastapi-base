@@ -1,6 +1,9 @@
 import json
+import os
 from typing import List, Dict, Optional, Union
 from pydantic import BaseModel, root_validator, validator
+
+from app.core.config import settings
 from app.helpers.exception_handler import CustomException
 from app.schemas.chatbot import BaseChatRequest
 
