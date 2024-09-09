@@ -14,6 +14,8 @@ with open(os.path.join(settings.STATIC_URL, "files/app", "GPTs.json"), 'r') as f
 STORES = list(PROMPTS.keys())
 
 
+# Base prompt
+
 def get_system_prompt(input_pmt = None, store_name = None):
     first_prompt = f"""You are a Assistant chatbot.
 Knowledge cutoff: 2023-10
@@ -82,6 +84,8 @@ Example for plot format:
     return first_prompt + sys_prompt + web_format + latex_prompt + plot_prompt
 
 
+# Web search prompt
+
 def check_web_browser_prompt():
     # System prompt
     system_prompt = f"""You are a helpful assistant chatbot.
@@ -133,6 +137,20 @@ def user_prompt_checked_web_browser(user_query: str, urls: list, texts: list):
     user_prompt += f"""<\End_Internet_Data>
 
 User query input: {user_query}  
+"""
+
+    return user_prompt
+
+
+# Chat Document Prompt For Long Context
+def user_prompt_add_document_lc(user_query: str, document: str):
+    user_prompt = f"""Using data in document to answer of user query:
+
+<Document_Data>
+{document}
+<\End_Document_Data>
+
+User query input: {user_query}
 """
 
     return user_prompt

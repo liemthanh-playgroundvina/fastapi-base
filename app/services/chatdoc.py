@@ -90,6 +90,11 @@ def chatdoclc_openai(request: ChatDocLCRequest):
     chat = ChatOpenAIServices(request)
     chat.init_system_prompt()
 
+    # Add document into LLM
+    with open(os.path.join(settings.WORKER_DIRECTORY, "chatdoc/lc", f"{request.data_id}.md"), 'r', encoding='utf-8') as file:
+        document = file.read()
+    messages[-1]['content'] = user_prompt_checked_web_browser(messages[-1]['content'], urls, texts_searched)
+
     # Chatting
     yield from chat.stream(stream_type="CHATTING", message_id=message_id)
     chat_metadata = [chat.metadata('chatdoc')]

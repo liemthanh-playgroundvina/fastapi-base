@@ -5,6 +5,7 @@ from app.helpers.exception_handler import CustomException
 from app.schemas.chatbot import BaseChatRequest
 
 
+
 class EmbedDocRequest(BaseModel):
     chat_type: str
     urls: Optional[List[str]] = []
@@ -67,4 +68,8 @@ class ChatDocLCRequest(BaseChatRequest):
         data_id = values.get('data_id', "")
         if not data_id.strip():
             raise CustomException(http_code=400, code='400', message=f"[data_id] is not empty.")
+
+        if not os.path.exists(os.path.join(settings.WORKER_DIRECTORY, "chatdoc/lc", f"{data_id}.md")):
+            raise ValueError(f"[data_id] does not exist. Must 'embed before'")
+
         return values
