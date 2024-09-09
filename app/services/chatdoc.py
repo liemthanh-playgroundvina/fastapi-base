@@ -90,70 +90,10 @@ def chatdoclc_openai(request: ChatDocLCRequest):
     chat = ChatOpenAIServices(request)
     chat.init_system_prompt()
 
-    # Searching
-    yield from search_mode(message_id, chat.messages)
-
     # Chatting
     yield from chat.stream(stream_type="CHATTING", message_id=message_id)
-    yield chat.stream_data(stream_type="METADATA", message_id=message_id, data=[chat.metadata('chatdoc')])
+    chat_metadata = [chat.metadata('chatdoc')]
+    yield chat.stream_data(stream_type="METADATA", message_id=message_id, data=json.dumps(chat_metadata))
 
-
-def search_mode(message_id: str, messages: list):
-    """
-     Search data from user input
-
-     response:
-        {
-            "web_browser_mode": true,
-            "request": {
-                "query": "Event",
-                "time": "20/10/2020",
-                "num_link": 3
-            }
-        }
-
-    """
-    from app.schemas.chatbot import BaseChatRequest
-    from app.helpers.llm.preprompts.store import check_web_browser_prompt, user_prompt_checked_web_browser
-    from app.services.common import GoogleSearchService
-
-    logging.getLogger('app').info("-- CHECK MODE WEB SEARCH:")
-
-    # Check search mode
-    search_model = {
-        "platform": "OpenAI",
-        "model_name": "gpt-4o-mini",
-        "temperature": 0.5,
-        "max_tokens": 4096,
-    }
-    search_request = BaseChatRequest(messages=messages[1:], chat_model=search_model)
-    search = ChatOpenAIServices(search_request)
-    search.messages = [
-        {"role": "system", "content": check_web_browser_prompt()},
-        {"role": "user", "content": f"""Check mode with user query input is: \n{search.messages_to_str()}\n"""}
-    ]
-    response = search.function_calling()
-
-    # Stream search mode
-    if response['web_browser_mode']:
-        yield search.stream_data(stream_type="SEARCHING", message_id=message_id, data="Searching...")
-        question = f"{response['request']['query']} {response['request']['time']}"
-        urls, gg_metadata = GoogleSearchService().google_search(
-            question,
-            num=response['request']['num_link'],
-            lr=f"lang_{response['request']['language']}",
-        )
-        yield search.stream_data(stream_type="SEARCHED", message_id=message_id, data=json.dumps(urls))
-        metadata = [search.metadata('check_web_search'), gg_metadata]
-        yield search.stream_data(stream_type="METADATA", message_id=message_id, data=json.dumps(metadata))
-
-        texts_searched = GoogleSearchService().web_scraping(urls)
-        logging.getLogger('app').info("-- DATA SEARCHED: ")
-        logging.getLogger('app').info(texts_searched)
-
-        # Update message when have data browser
-        messages[-1]['content'] = user_prompt_checked_web_browser(messages[-1]['content'], urls, texts_searched)
-
-    else:
-        metadata = [search.metadata('check_web_search')]
-        yield search.stream_data(stream_type="METADATA", message_id=message_id, data=json.dumps(metadata))
+    # Done
+    yield chat.stream_data(stream_type="DONE", message_id=message_id, data="DONE")
