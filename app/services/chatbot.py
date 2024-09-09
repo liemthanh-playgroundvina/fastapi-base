@@ -57,7 +57,11 @@ def chat_openai(request: Union[ChatRequest, ChatVisionRequest]):
 
     # Chatting
     yield from chat.stream(stream_type="CHATTING", message_id=message_id)
-    yield chat.stream_data(stream_type="METADATA", message_id=message_id, data=[chat.metadata('chatdoc')])
+    chat_metadata = [chat.metadata('chatdoc')]
+    yield chat.stream_data(stream_type="METADATA", message_id=message_id, data=json.dumps(chat_metadata))
+
+    # Done
+    yield from chat.stream_data(stream_type="DONE", message_id=message_id, data="DONE")
 
 
 def search_mode(message_id: str, messages: list):

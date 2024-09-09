@@ -36,7 +36,7 @@ def chat(request: ChatRequest) -> Any:
     Returns:
 
         - response:
-            [METADATA] -> [CHATTING]... -> [METADATA]
+            [METADATA] -> [CHATTING]... -> [METADATA] -> [DONE]
 
         - in <CHATTING>:
             - '\\n' is replaced to '<!<newline>!>'
@@ -44,7 +44,7 @@ def chat(request: ChatRequest) -> Any:
     Note:
 
         - When Web Search is enabled (auto check):
-            [SEARCHING] -> [SEARCHED]... -> [METADATA] -> [CHATTING]... -> [METADATA]
+            [SEARCHING] -> [SEARCHED]... -> [METADATA] -> [CHATTING]... -> [METADATA] -> [DONE]
 
     """
     request = ChatRequest(**request)
@@ -72,7 +72,7 @@ def chat_vision(request: ChatVisionRequest) -> Any:
     Returns:
 
         - response:
-            [METADATA] -> [CHATTING]... -> [METADATA]
+            [METADATA] -> [CHATTING]... -> [METADATA] -> [DONE]
 
         - in <CHATTING>:
             - '\\n' is replaced to '<!<newline>!>'
@@ -80,7 +80,7 @@ def chat_vision(request: ChatVisionRequest) -> Any:
     Note:
 
         - When Web Search is enabled (auto check):
-            [SEARCHING] -> [SEARCHED]... -> [METADATA] -> [CHATTING]... -> [METADATA]
+            [SEARCHING] -> [SEARCHED]... -> [METADATA] -> [CHATTING]... -> [METADATA] -> [DONE]
 
 
         - Example for message with image: https://readme.fireworks.ai/docs/querying-vision-language-models#chat-completions-api
