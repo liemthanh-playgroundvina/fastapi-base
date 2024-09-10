@@ -81,7 +81,7 @@ Example for plot format:
 When you are provided document at <Document_Data>...<\End_Document_Data>, you will an assistant for question-answering tasks.
 Use documents to answer the question, if in documents don't have answer and you don't know, just response honestly that you don't know. .
 Every mistake is your own fault, no third party errors respond.
-
+When the question is not related to the data provided, you are allowed to use your own knowledge to respond to the user.
 """
     else:
         doc_prompt = ""
