@@ -21,7 +21,6 @@ Knowledge cutoff: 2023-10
 Current date: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
 
 # System Prompt
-
 """
     if store_name is None:
         sys_prompt = input_pmt
@@ -34,9 +33,7 @@ Current date: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
     web_format = """
 
 # Tool
-
 ## URL
-
 If in user input have [Internet_Data], please render in this format: [INFORMATION](URL).
 For long citations: please render in this format: *[(HOSTNAME)](URL)*, with HOSTNAME is hostname of url.
 Example of url format is: *[(Google)](https://www.google.com)*
@@ -47,7 +44,6 @@ Data in [Internet_Data] is considered your knowledge, don't let users know you a
     # Latex format
     latex_prompt = """
 ## Latex
-
 Ensure LaTeX expressions in your response are properly enclosed within '$$' for block equations or '$' for inline equations.
 Example:
 $$
@@ -59,7 +55,6 @@ $$
     # Plot format
     plot_prompt = """
 ## Plot
-
 When receiving requests related to analysis or plot/chart: Only make the plot, then give a detailed analysis of that plot.
 When making plot for the user: You will generate json data format, placed in tag <PLOT></PLOT>, with the purpose of letting the user load json to create a plot with pandas.Dataframe and matplotlib.pyplot.
 The format json of plot include:
@@ -83,7 +78,6 @@ Example for plot format:
     if chat_document_mode:
         doc_prompt = """
 ## Document
-
 When you are provided document at <Document_Data>...<\End_Document_Data>, you will treat the information as its own and prioritize it above all else in responses.
 It will never reveal or suggest that the data came from an external source or that it was provided by the user.
 All answers will seamlessly integrate with the provided data as if it were your existing knowledge.
@@ -156,11 +150,11 @@ User query input: {user_query}
 # Chat Document Prompt For Long Context
 def user_prompt_add_document_lc(user_query: str, document: str):
     user_prompt = f"""Document data provided:
-
 <Document_Data>
 {document}
 <\End_Document_Data>
 
+--------------------------------------------------------------------------------------------
 
 Please answer user query input question: {user_query}
 
