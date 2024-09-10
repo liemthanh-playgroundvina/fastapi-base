@@ -32,6 +32,7 @@ Current date: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
 
     # Web browser format
     web_format = """
+
 # Tool
 
 ## URL
@@ -77,7 +78,6 @@ Example for plot format:
     "xlabel": "Date",
     "xlabel": "Price (USD per ounce)"
 }</PLOT>
-
 """
     # Chat Document Mode
     if chat_document_mode:
@@ -160,7 +160,6 @@ def user_prompt_add_document_lc(user_query: str, document: str):
 <Document_Data>
 {document}
 <\End_Document_Data>
----
 
 
 Please answer user query input question: {user_query}

@@ -268,7 +268,7 @@ class DocumentLoaderService(object):
 **Context**
 """
             markdown += '\n'.join(DocumentLoaderService().iter_markdown_lines(doc))
-            markdown += "\n---\n\n"
+            markdown += "\n---\n"
             markdowns.append(markdown)
         return markdowns
 
