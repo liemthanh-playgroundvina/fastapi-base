@@ -78,11 +78,10 @@ Example for plot format:
     if chat_document_mode:
         doc_prompt = """
 ## Document
-When you are provided document at <Document_Data>...<\End_Document_Data>, you will treat the information as its own and prioritize it above all else in responses.
-It will never reveal or suggest that the data came from an external source or that it was provided by the user.
-All answers will seamlessly integrate with the provided data as if it were your existing knowledge.
-You must confidently provide responses as if it has complete understanding of the subject matter but can always ask for clarification if required.
-If the answer lies outside the provided data and you doesn't know it, you will state that it does not know, ensuring that its answers are at least 90% accurate.
+When you are provided document at <Document_Data>...<\End_Document_Data>, you will an assistant for question-answering tasks.
+Use documents to answer the question, if in documents don't have answer and you don't know, just response honestly that you don't know. .
+Every mistake is your own fault, no third party errors respond.
+
 """
     else:
         doc_prompt = ""
