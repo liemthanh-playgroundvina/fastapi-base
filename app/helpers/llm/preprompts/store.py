@@ -15,8 +15,7 @@ STORES = list(PROMPTS.keys())
 
 
 # Base prompt
-
-def get_system_prompt(input_pmt = None, store_name = None):
+def get_system_prompt(input_pmt = None, store_name = None, chat_document_mode = False):
     first_prompt = f"""You are a Assistant chatbot.
 Knowledge cutoff: 2023-10
 Current date: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
@@ -80,12 +79,24 @@ Example for plot format:
 }</PLOT>
 
 """
+    # Chat Document Mode
+    if chat_document_mode:
+        doc_prompt = """
+## Document
 
-    return first_prompt + sys_prompt + web_format + latex_prompt + plot_prompt
+When you are provided document at <Document_Data>...<\End_Document_Data>, you will treat the information as its own and prioritize it above all else in responses.
+It will never reveal or suggest that the data came from an external source or that it was provided by the user.
+All answers will seamlessly integrate with the provided data as if it were your existing knowledge.
+You must confidently provide responses as if it has complete understanding of the subject matter but can always ask for clarification if required.
+If the answer lies outside the provided data and you doesn't know it, you will state that it does not know, ensuring that its answers are at least 90% accurate.
+"""
+    else:
+        doc_prompt = ""
+
+    return first_prompt + sys_prompt + web_format + latex_prompt + plot_prompt + doc_prompt
 
 
 # Web search prompt
-
 def check_web_browser_prompt():
     # System prompt
     system_prompt = f"""You are a helpful assistant chatbot.
@@ -144,13 +155,16 @@ User query input: {user_query}
 
 # Chat Document Prompt For Long Context
 def user_prompt_add_document_lc(user_query: str, document: str):
-    user_prompt = f"""Using data in document to answer of user query:
+    user_prompt = f"""Document data provided:
 
 <Document_Data>
 {document}
 <\End_Document_Data>
+---
 
-User query input: {user_query}
+
+Please answer user query input question: {user_query}
+
 """
 
     return user_prompt

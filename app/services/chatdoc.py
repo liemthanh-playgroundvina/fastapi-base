@@ -90,7 +90,7 @@ def chatdoclc_openai(request: ChatDocLCRequest):
 
     # Init Chat
     chatdoc = ChatOpenAIServices(request)
-    chatdoc.init_system_prompt()
+    chatdoc.init_system_prompt(chat_document_mode=True)
 
     # Add document into LLM
     with open(os.path.join(settings.WORKER_DIRECTORY, "chatdoc/lc", f"{request.data_id}.md"), 'r', encoding='utf-8') as file:

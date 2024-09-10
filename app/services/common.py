@@ -160,15 +160,15 @@ class ChatOpenAIServices:
 
         self.answer = ""
 
-    def init_system_prompt(self, store_name: str = None):
+    def init_system_prompt(self, store_name: str = None, chat_document_mode: bool = False):
         from app.helpers.llm.preprompts.store import get_system_prompt
 
         if self.messages[0]['role'] != "system":
             self.messages = [{"role": "system", "content": "You are an assistant."}] + self.messages
         if store_name:
-            self.messages[0]['content'] = get_system_prompt(store_name=store_name)
+            self.messages[0]['content'] = get_system_prompt(store_name=store_name, chat_document_mode=chat_document_mode)
         else:
-            self.messages[0]['content'] = get_system_prompt(input_pmt=self.messages[0]['content'])
+            self.messages[0]['content'] = get_system_prompt(input_pmt=self.messages[0]['content'], chat_document_mode=chat_document_mode)
 
     def messages_to_str(self) -> str:
         mess_str = ""
