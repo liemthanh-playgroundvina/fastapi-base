@@ -18,6 +18,9 @@ from app.db.base import engine
 from app.core.config import settings
 from app.helpers.exception_handler import CustomException, http_exception_handler
 
+os.makedirs(os.path.dirname(settings.LOGGING_APP_FILE), exist_ok=True)
+with open(settings.LOGGING_APP_FILE, 'a'):
+    pass
 logging.config.fileConfig(settings.LOGGING_CONFIG_FILE, disable_existing_loggers=False)
 Base.metadata.create_all(bind=engine)
 
