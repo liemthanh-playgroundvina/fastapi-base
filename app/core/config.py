@@ -35,21 +35,19 @@ class Settings(BaseSettings):
     REDIS_PORT: int = 6379
     REDIS_PASS: str = ""
     REDIS_DB: int = 0
-    REDIS_BACKEND: str = "redis://:{password}@{hostname}:{port}/{db}".format(
-        hostname=REDIS_HOST, password=REDIS_PASS, port=REDIS_PORT, db=REDIS_DB
-    )
+    @property
+    def REDIS_BACKEND(self) -> str:
+        return f"redis://:{self.REDIS_PASS}@{self.REDIS_HOST}:{self.REDIS_PORT}/{self.REDIS_DB}"
+
     RABBITMQ_HOST: str = "127.0.0.1"
     RABBITMQ_PORT: int = 5672
     RABBITMQ_USER: str = "guest"
     RABBITMQ_PASS: str = "guest"
     RABBITMQ_VHOST: str = ""
-    RABBITMQ_BROKER: str = "amqp://{user}:{pw}@{hostname}:{port}/{vhost}".format(
-        user=RABBITMQ_USER,
-        pw=RABBITMQ_PASS,
-        hostname=RABBITMQ_HOST,
-        port=RABBITMQ_PORT,
-        vhost=RABBITMQ_VHOST,
-    )
+    @property
+    def RABBITMQ_BROKER(self) -> str:
+        return f"amqp://{self.RABBITMQ_USER}:{self.RABBITMQ_PASS}@{self.RABBITMQ_HOST}:{self.RABBITMQ_PORT}/{self.RABBITMQ_VHOST}"
+
     QUEUE_TIMEOUT: int = 60 * 60
     QUEUE_TIME_LIMIT: int = 5 * 60
     WORKER_DIRECTORY: str = "static/worker"
