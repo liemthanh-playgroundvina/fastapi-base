@@ -1,6 +1,8 @@
 import os
-from dotenv import load_dotenv
-from pydantic import BaseSettings
+try:
+    from pydantic import BaseSettings
+except:
+    from pydantic.v1 import BaseSettings
 
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../'))
 
