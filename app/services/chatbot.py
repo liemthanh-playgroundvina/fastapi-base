@@ -57,7 +57,7 @@ def chat_openai(request: Union[ChatRequest, ChatVisionRequest]):
 
     # Chatting
     yield from chat.stream(stream_type="CHATTING", message_id=message_id)
-    chat_metadata = [chat.metadata('chatdoc')]
+    chat_metadata = [chat.metadata('chat')]
     yield chat.stream_data(stream_type="METADATA", message_id=message_id, data=json.dumps(chat_metadata))
 
     # Done
@@ -111,7 +111,7 @@ def search_mode(message_id: str, messages: list):
             lr=f"lang_{response['request']['language']}",
         )
         yield search.stream_data(stream_type="SEARCHED", message_id=message_id, data=json.dumps(urls))
-        metadata = [search.metadata('check_web_search'), gg_metadata]
+        metadata = [gg_metadata, search.metadata('check_web_search')]
         yield search.stream_data(stream_type="METADATA", message_id=message_id, data=json.dumps(metadata))
 
         texts_searched = GoogleSearchService().web_scraping(urls)
