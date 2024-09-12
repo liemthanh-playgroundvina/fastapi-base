@@ -17,3 +17,4 @@ torch==2.0.1+cu118
 onnxruntime_gpu
 # # WORKING
 unstructured[all-docs]
+langchain==0.2.16

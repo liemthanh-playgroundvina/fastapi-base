@@ -51,8 +51,10 @@ def embed_doc_task(self, task_id: str, data: bytes, request: bytes):
         docs_cleaned = DocumentLoaderService().cleaners(docs)
         # Save/Embed follow chat type
         if request['chat_type'] == "lc":
+            print("Save data with [chat_type] 'Long Context'")
             data_id = save_file_for_chatlc(docs_cleaned)
         elif request['chat_type'] == "rag":
+            print("Save data with [chat_type] 'RAG'")
             data_id = embed_data_for_chatrag(docs_cleaned)
         else:
             raise ValueError(f"Don't support [chat_type] '{request['chat_type']}'")
