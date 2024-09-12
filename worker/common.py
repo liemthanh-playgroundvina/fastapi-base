@@ -273,6 +273,30 @@ class DocumentLoaderService(object):
         return markdowns
 
 
+    # Chunking
+    @staticmethod
+    def chunker(docs: list[list[Element]]):
+        from unstructured.chunking.title import chunk_by_title
+
+        elements = []
+        for doc in docs:
+            elements.extend(doc)
+
+        chunks = chunk_by_title(
+            elements=elements,
+            max_characters=500, # Giới hạn cứng: mỗi khối không vượt quá n ký tự
+            combine_text_under_n_chars=100, # Kết hợp các phần tử nhỏ hơn n ký tự
+            new_after_n_chars=300, # Giới hạn mềm: dừng mở rộng khi đạt n ký tự
+            include_orig_elements=True,
+            multipage_sections=True,
+            overlap=50, # Ký tự cuối được chèn vào đầu khối tiếp theo nếu khối bị chia nhỏ
+            overlap_all=False, # Chồng chéo chỉ áp dụng với các khối bị chia nhỏ
+        )
+
+        return chunks
+
+
+
 class S3UploadFileObject(object):
     filename = None
     file = None

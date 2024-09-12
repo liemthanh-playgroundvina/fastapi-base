@@ -12,6 +12,8 @@ from worker.common import TaskStatusManager, DocumentLoaderService, WorkerCommon
 from celery.exceptions import SoftTimeLimitExceeded
 from amqp.exceptions import PreconditionFailed
 
+from unstructured.documents.elements import Element
+
 
 @app.task(
     bind=True,
@@ -47,11 +49,13 @@ def embed_doc_task(self, task_id: str, data: bytes, request: bytes):
         print("Document Loader: ...")
         docs = DocumentLoaderService().loaders(request['files_path'], request['web_urls'])
         docs_cleaned = DocumentLoaderService().cleaners(docs)
-        # Save / Embed follow chat type
+        # Save/Embed follow chat type
         if request['chat_type'] == "lc":
             data_id = save_file_for_chatlc(docs_cleaned)
         elif request['chat_type'] == "rag":
-            data_id = ''
+            data_id = embed_data_for_chatrag(docs_cleaned)
+        else:
+            raise ValueError(f"Don't support [chat_type] '{request['chat_type']}'")
         print("Document Loader: Done")
 
         response = {"data_id": data_id}
@@ -89,7 +93,7 @@ def embed_doc_task(self, task_id: str, data: bytes, request: bytes):
         return
 
 
-def save_file_for_chatlc(docs_cleaned) -> str:
+def save_file_for_chatlc(docs_cleaned: list[list[Element]]) -> str:
     # Convert to .md
     mds = DocumentLoaderService.docs_to_markdowns(docs_cleaned)
     md_content = '\n\n'.join(mds)
@@ -100,4 +104,25 @@ def save_file_for_chatlc(docs_cleaned) -> str:
     file_name = os.path.join(settings.WORKER_DIRECTORY, "chatdoc/lc", f"{data_id}.md")
     WorkerCommonService().save_file(file_name, md_content)
 
+    return data_id
+
+def embed_data_for_chatrag(docs_cleaned: list[list[Element]]) -> str:
+    from langchain_huggingface.embeddings import HuggingFaceEndpointEmbeddings
+    from langchain_qdrant import QdrantVectorStore
+
+    data_id = str(uuid.uuid4())
+
+    chunks = DocumentLoaderService().chunker(docs_cleaned)
+    for chunk in chunks:
+        print(chunk)
+        print("\n\n" + "-" * 80)
+
+    embeddings = HuggingFaceEndpointEmbeddings(model=settings.EM_URL)
+    QdrantVectorStore.from_documents(
+        chunks,
+        embeddings,
+        url=settings.VDB_URL,
+        prefer_grpc=True,
+        collection_name=data_id,
+    )
     return data_id
