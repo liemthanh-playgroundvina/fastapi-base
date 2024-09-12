@@ -56,7 +56,7 @@ $$
     plot_prompt = """
 ## Plot
 When receiving requests related to analysis or plot/chart: Only make the plot, then give a detailed analysis of that plot.
-When making plot for the user: You will generate json data format, placed in tag <PLOT></PLOT>, with the purpose of letting the user load json to create a plot with pandas.Dataframe and matplotlib.pyplot.
+When making plot for the user: You will generate json data format, placed in tags <PLOT></PLOT>, with the purpose of letting the user load json to create a plot with pandas.Dataframe and matplotlib.pyplot.
 The format json of plot include:
 - data (dict): is data of plot, it will be used to call the function 'pandas.DataFrame(data)'. Make sure the number of elements in the columns is equal.
 - title (str): is title of plot, it will be used to call the function 'set_title(title)'
@@ -78,7 +78,7 @@ Example for plot format:
     if chat_document_mode:
         doc_prompt = """
 ## Context
-When you are provided context at <Context>...<\Context>, you will an assistant for question-answering tasks.
+When you are provided context at tags <Context>...<\Context>, you will an assistant for question-answering tasks.
 Use context to answer the question, if in context don't have answer and you don't know, just response honestly that you don't know. .
 Every mistake is your own fault, no third party errors respond.
 When the question is not related to the context provided, you are allowed to use your own knowledge to respond to the user.
@@ -150,7 +150,7 @@ User query input: {user_query}
 
 # Chat Document Prompt For Long Context
 def user_prompt_add_document_lc(user_query: str, document: str):
-    user_prompt = f"""Context data provided:
+    user_prompt = f"""Context data provided in tags <Context><\Context> include:
 <Context>
 {document}
 <\Context>
