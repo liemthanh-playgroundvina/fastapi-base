@@ -110,7 +110,6 @@ def save_file_for_chatlc(docs_cleaned: list[list[Element]]) -> str:
 
 def embed_data_for_chatrag(docs_cleaned: list[list[Element]]) -> str:
     from langchain_huggingface.embeddings import HuggingFaceEndpointEmbeddings
-    from langchain_core.documents.base import Document
     from langchain_qdrant import QdrantVectorStore
 
     data_id = str(uuid.uuid4())
