@@ -5,9 +5,11 @@ import json
 from copy import deepcopy
 from datetime import datetime
 from typing import Union, List, Dict, Tuple, Iterator
+
 from app.mq_main import redis
 
 from unstructured.documents.elements import Element, ElementType
+from langchain_core.documents import Document
 
 
 class TaskStatusManager(object):
@@ -295,6 +297,16 @@ class DocumentLoaderService(object):
 
         return chunks
 
+    # Element (Unstructured) -> Documents(Langchain)
+    @staticmethod
+    def elements_to_documents(elements: List[Element]) -> List[Document]:
+        return [
+            Document(
+                page_content=element.text if hasattr(element, 'text') else "",
+                metadata=element.metadata.__dict__ if hasattr(element, 'metadata') and element.metadata else {}
+            )
+            for element in elements
+        ]
 
 
 class S3UploadFileObject(object):

@@ -110,18 +110,19 @@ def save_file_for_chatlc(docs_cleaned: list[list[Element]]) -> str:
 
 def embed_data_for_chatrag(docs_cleaned: list[list[Element]]) -> str:
     from langchain_huggingface.embeddings import HuggingFaceEndpointEmbeddings
+    from langchain_core.documents.base import Document
     from langchain_qdrant import QdrantVectorStore
 
     data_id = str(uuid.uuid4())
-
     chunks = DocumentLoaderService().chunker(docs_cleaned)
-    for chunk in chunks:
-        print(chunk)
-        print("\n\n" + "-" * 80)
 
+    documents = DocumentLoaderService().elements_to_documents(chunks)
+    for doc in documents:
+        print(doc.page_content)
+        print("\n\n" + "-" * 80)
     embeddings = HuggingFaceEndpointEmbeddings(model=settings.EM_URL)
     QdrantVectorStore.from_documents(
-        chunks,
+        documents,
         embeddings,
         url=settings.VDB_URL,
         prefer_grpc=True,
