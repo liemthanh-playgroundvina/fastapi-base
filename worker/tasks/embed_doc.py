@@ -48,14 +48,15 @@ def embed_doc_task(self, task_id: str, data: bytes, request: bytes):
         # Load file/url
         print("Document Loader: ...")
         docs = DocumentLoaderService().loaders(request['files_path'], request['web_urls'])
-        docs_cleaned = DocumentLoaderService().cleaners(docs)
+        # docs = DocumentLoaderService().cleaners(docs)
+
         # Save/Embed follow chat type
         if request['chat_type'] == "lc":
             print("Save data with [chat_type] 'Long Context'")
-            data_id = save_file_for_chatlc(docs_cleaned)
+            data_id = save_file_for_chatlc(docs)
         elif request['chat_type'] == "rag":
             print("Save data with [chat_type] 'RAG'")
-            data_id = embed_data_for_chatrag(docs_cleaned)
+            data_id = embed_data_for_chatrag(docs)
         else:
             raise ValueError(f"Don't support [chat_type] '{request['chat_type']}'")
         print("Document Loader: Done")
@@ -95,9 +96,9 @@ def embed_doc_task(self, task_id: str, data: bytes, request: bytes):
         return
 
 
-def save_file_for_chatlc(docs_cleaned: list[list[Element]]) -> str:
+def save_file_for_chatlc(elements: list[list[Element]]) -> str:
     # Convert to .md
-    mds = DocumentLoaderService.docs_to_markdowns(docs_cleaned)
+    mds = DocumentLoaderService.docs_to_markdowns(elements)
     md_content = '\n\n'.join(mds)
 
     # Save to .md
@@ -108,12 +109,12 @@ def save_file_for_chatlc(docs_cleaned: list[list[Element]]) -> str:
 
     return data_id
 
-def embed_data_for_chatrag(docs_cleaned: list[list[Element]]) -> str:
+def embed_data_for_chatrag(elements: list[list[Element]]) -> str:
     from langchain_huggingface.embeddings import HuggingFaceEndpointEmbeddings
     from langchain_qdrant import QdrantVectorStore
 
     data_id = str(uuid.uuid4())
-    chunks = DocumentLoaderService().chunker(docs_cleaned)
+    chunks = DocumentLoaderService().chunker(elements)
 
     documents = DocumentLoaderService().elements_to_documents(chunks)
     for doc in documents:
