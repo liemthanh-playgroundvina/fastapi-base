@@ -55,6 +55,8 @@ services:
       - .env
     expose:
       - 6333
+      - 6334
+      - 6335
     volumes:
       - volume-vdb:/qdrant/storage
     networks:
