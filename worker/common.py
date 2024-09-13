@@ -300,14 +300,21 @@ class DocumentLoaderService(object):
     # Element (Unstructured) -> Documents(Langchain)
     @staticmethod
     def elements_to_documents(elements: List[Element]) -> List[Document]:
-        return [
-            Document(
-                page_content=str(element.text) if hasattr(element, 'text') else "",
-                metadata=element.metadata.__dict__ if hasattr(element, 'metadata') and element.metadata else {}
-            )
-            for element in elements
-        ]
-
+        documents = []
+        for element in elements:
+            metadata = {}
+            if hasattr(element, 'metadata'):
+                metadata.update(
+                    element.metadata.to_dict()
+                    if hasattr(element.metadata, 'to_dict')
+                    else vars(element.metadata)
+                )
+            if hasattr(element, 'category'):
+                metadata['category'] = element.category
+            if hasattr(element, 'to_dict') and 'element_id' in element.to_dict():
+                metadata['element_id'] = element.to_dict()['element_id']
+            documents.append(Document(page_content=str(element), metadata=metadata))
+        return documents
 
 class S3UploadFileObject(object):
     filename = None
