@@ -211,7 +211,7 @@ class DocumentLoaderService(object):
 
             e.text = replace_unicode_quotes(e.text)
             e.text = '\n'.join(group_bullet_paragraph(e.text))
-            e.text = group_broken_paragraphs(e.text)
+            # e.text = group_broken_paragraphs(e.text)
             e.text = clean_extra_whitespace(e.text)
         return elements_cleaned
 
