@@ -286,9 +286,9 @@ class DocumentLoaderService(object):
 
         chunks = chunk_by_title(
             elements=elements,
-            max_characters=500, # Giới hạn cứng: mỗi khối không vượt quá n ký tự
-            combine_text_under_n_chars=100, # Kết hợp các phần tử nhỏ hơn n ký tự
-            new_after_n_chars=300, # Giới hạn mềm: dừng mở rộng khi đạt n ký tự
+            max_characters=200*4, # Giới hạn cứng: mỗi khối không vượt quá n ký tự
+            combine_text_under_n_chars=20*4, # Kết hợp các phần tử nhỏ hơn n ký tự
+            new_after_n_chars=100*4, # Giới hạn mềm: dừng mở rộng khi đạt n ký tự
             include_orig_elements=True,
             multipage_sections=True,
             overlap=50, # Ký tự cuối được chèn vào đầu khối tiếp theo nếu khối bị chia nhỏ
