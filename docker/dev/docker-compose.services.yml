@@ -27,7 +27,7 @@ services:
   em:
     image: ghcr.io/huggingface/text-embeddings-inference:cuda-1.5
     container_name: ${NAME}-${ENV}-em
-    command: ["--port", "8000", "--model-id", "BAAI/bge-m3", "--max-client-batch-size" "128"]
+    command: ["--port", "8000", "--model-id", "BAAI/bge-m3", "--max-client-batch-size", "128"]
     restart: always
     env_file:
       - .env
