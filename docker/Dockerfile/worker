@@ -35,6 +35,4 @@ COPY ./logs /app/logs
 COPY ./scripts /app/scripts
 RUN touch logs/celery.log
 
-RUN chmod +x /app/scripts/entrypoint.worker.sh
-
-CMD ["/app/scripts/entrypoint.worker.sh"]
+CMD ["bash"]
