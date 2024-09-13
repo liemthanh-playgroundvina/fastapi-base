@@ -210,8 +210,8 @@ class DocumentLoaderService(object):
                 logging.getLogger('celery').warning(f"Error in bytes_string_to_string: {ex}. Skipping this step.")
 
             e.text = replace_unicode_quotes(e.text)
-            e.text = '\n'.join(group_bullet_paragraph(e.text))
-            # e.text = group_broken_paragraphs(e.text)
+            # e.text = '\n'.join(group_bullet_paragraph(e.text))
+            e.text = group_broken_paragraphs(e.text)
             e.text = clean_extra_whitespace(e.text)
         return elements_cleaned
 
