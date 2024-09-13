@@ -124,7 +124,7 @@ def embed_data_for_chatrag(docs_cleaned: list[list[Element]]) -> str:
         documents,
         embeddings,
         url=settings.VDB_URL,
-        prefer_grpc=True,
+        prefer_grpc=False,
         collection_name=data_id,
     )
     return data_id

@@ -46,7 +46,6 @@ services:
               capabilities: [ gpu ]
     networks:
       - net
-
   # Vectordb
   vdb:
     image: ghcr.io/qdrant/qdrant/qdrant:v1.11.1-unprivileged
@@ -56,11 +55,11 @@ services:
       - .env
     expose:
       - 6333
-      - 6334
     volumes:
       - volume-vdb:/qdrant/storage
     networks:
       - net
+
 
 volumes:
   volume-llm:
