@@ -302,7 +302,7 @@ class DocumentLoaderService(object):
     def elements_to_documents(elements: List[Element]) -> List[Document]:
         return [
             Document(
-                page_content=element.text if hasattr(element, 'text') else "",
+                page_content=str(element.text) if hasattr(element, 'text') else "",
                 metadata=element.metadata.__dict__ if hasattr(element, 'metadata') and element.metadata else {}
             )
             for element in elements
