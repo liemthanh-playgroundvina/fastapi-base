@@ -11,7 +11,7 @@ from app.helpers.login_manager import login_required, PermissionRequired
 from app.mq_main import redis
 from app.schemas.base import DataResponse
 
-from app.schemas.chatdoc import EmbedDocRequest, ChatDocLCRequest
+from app.schemas.chatdoc import EmbedDocRequest, ChatDocRequest
 from app.schemas.queue import QueueResponse
 from app.services.chatdoc import ChatDocService
 from app.services.common import CommonService
@@ -99,7 +99,7 @@ def embed_doc_queue(
     dependencies=[Depends(login_required)],
     # response_model=DataResponse[]
 )
-def chat_doc_lc(request: ChatDocLCRequest) -> Any:
+def chat_doc_lc(request: ChatDocRequest) -> Any:
     """
     Chat Document Using LLM Long Context
 
@@ -125,5 +125,40 @@ def chat_doc_lc(request: ChatDocLCRequest) -> Any:
         - With Draw Plot Tool:
             <PLOT> json_plot <\PLOT>
     """
-    request = ChatDocLCRequest(**request)
+    request = ChatDocRequest(**request)
     return ChatDocService().chat_doc_lc(request)
+
+
+@router.post(
+    "/rag",
+    dependencies=[Depends(login_required)],
+    # response_model=DataResponse[]
+)
+def chat_doc_rag(request: ChatDocRequest) -> Any:
+    """
+    Chat Document Using RAG
+
+    Params:
+
+        - data_id (str): The collection name to chat
+        - messages (list): Message of user
+        - chat_model (dict):
+            + platform (str)
+            + model_name (str):
+            + temperature (float): [0 -> 1.0]
+            + max_tokens (int):
+    Returns:
+
+        - response:
+            [DATA_STREAMING] <string_data> [DONE] [METADATA] <json_metadata>
+
+        - in <string_data>:
+            - '\\n' is replaced to '<!<newline>!>'
+
+    Note:
+
+        - With Draw Plot Tool:
+            <PLOT> json_plot <\PLOT>
+    """
+    request = ChatDocRequest(**request)
+    return ChatDocService().chat_doc_rag(request)

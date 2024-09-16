@@ -43,7 +43,7 @@ class EmbedDocRequest(BaseModel):
         return value
 
 
-class ChatDocLCRequest(BaseChatRequest):
+class ChatDocRequest(BaseChatRequest):
     data_id: str
 
     class Config:
