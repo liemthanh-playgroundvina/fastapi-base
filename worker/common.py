@@ -217,11 +217,11 @@ class DocumentLoaderService(object):
 
 
     @staticmethod
-    def cleaners(docs: list[list[Element]]) -> list[list[Element]]:
-        docs_cleaned = []
-        for doc in docs:
-            docs_cleaned.append(DocumentLoaderService().cleaner(doc))
-        return docs_cleaned
+    def cleaners(elements: list[list[Element]]) -> list[list[Element]]:
+        elements_cleaned = []
+        for ele in elements:
+            elements_cleaned.append(DocumentLoaderService().cleaner(ele))
+        return elements_cleaned
 
     @staticmethod
     def iter_markdown_lines(elements: list[Element]) -> Iterator[str]:
@@ -260,32 +260,31 @@ class DocumentLoaderService(object):
                 yield e.text
 
     @staticmethod
-    def docs_to_markdowns(docs: list[list[Element]]) -> list[str]:
+    def docs_to_markdowns(elements: list[list[Element]]) -> list[str]:
         markdowns = []
-        for doc in docs:
+        for ele in elements:
             markdown = f"""**Metadata**
-- Filename/URL: {doc[0].metadata.url or doc[0].metadata.filename}
+- Filename/URL: {ele[0].metadata.url or ele[0].metadata.filename}
 - Date created: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
 
 **Context**
 """
-            markdown += '\n'.join(DocumentLoaderService().iter_markdown_lines(doc))
+            markdown += '\n'.join(DocumentLoaderService().iter_markdown_lines(ele))
             markdown += "\n---\n"
             markdowns.append(markdown)
         return markdowns
 
-
     # Chunking
     @staticmethod
-    def chunker(docs: list[list[Element]]):
+    def chunker(elements: list[list[Element]]):
         from unstructured.chunking.title import chunk_by_title
 
-        elements = []
-        for doc in docs:
-            elements.extend(doc)
+        list_element = []
+        for ele in elements:
+            list_element.extend(ele)
 
         chunks = chunk_by_title(
-            elements=elements,
+            elements=list_element,
             max_characters=200*4, # Giới hạn cứng: mỗi khối không vượt quá n ký tự
             combine_text_under_n_chars=20*4, # Kết hợp các phần tử nhỏ hơn n ký tự
             new_after_n_chars=100*4, # Giới hạn mềm: dừng mở rộng khi đạt n ký tự
@@ -300,8 +299,11 @@ class DocumentLoaderService(object):
     # Element (Unstructured) -> Documents(Langchain)
     @staticmethod
     def elements_to_documents(elements: List[Element]) -> List[Document]:
+        # Add mark down
+        markdown_lines = list(DocumentLoaderService().iter_markdown_lines(elements))
+
         documents = []
-        for element in elements:
+        for element, markdown_content in zip(elements, markdown_lines):
             metadata = {}
             if hasattr(element, 'metadata'):
                 metadata.update(
@@ -313,7 +315,7 @@ class DocumentLoaderService(object):
                 metadata['category'] = element.category
             if hasattr(element, 'to_dict') and 'element_id' in element.to_dict():
                 metadata['element_id'] = element.to_dict()['element_id']
-            documents.append(Document(page_content=str(element), metadata=metadata))
+            documents.append(Document(page_content=markdown_content, metadata=metadata))
         return documents
 
 class S3UploadFileObject(object):
