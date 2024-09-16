@@ -117,9 +117,6 @@ def embed_data_for_chatrag(elements: list[list[Element]]) -> str:
     chunks = DocumentLoaderService().chunker(elements)
 
     documents = DocumentLoaderService().elements_to_documents(chunks)
-    for doc in documents:
-        print(doc)
-        print("\n\n" + "-" * 80)
     embeddings = HuggingFaceEndpointEmbeddings(model=settings.EM_URL)
     QdrantVectorStore.from_documents(
         documents,
