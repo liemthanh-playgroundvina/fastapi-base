@@ -43,7 +43,7 @@ class EmbedDocRequest(BaseModel):
         return value
 
 
-class ChatDocRequest(BaseChatRequest):
+class ChatDocLCRequest(BaseChatRequest):
     data_id: str
 
     class Config:
@@ -74,5 +74,37 @@ class ChatDocRequest(BaseChatRequest):
 
         if not os.path.exists(os.path.join(settings.WORKER_DIRECTORY, "chatdoc/lc", f"{data_id}.md")):
             raise ValueError(f"[data_id] does not exist. Must 'embed before'")
+
+        return values
+
+
+class ChatDocRAGRequest(BaseChatRequest):
+    data_id: str
+
+    class Config:
+        schema_extra = {
+            "example": {
+                "data_id": "",
+                "messages": [
+                    {"role": "system", "content": "You are an assistant."},
+                    {"role": "user", "content": "Xin chào"},
+                    {"role": "assistant", "content": "Chào bạn. Tôi có thể giúp gì cho bạn?"},
+                    {"role": "user", "content": "Cho tôi danh sách các câu hỏi về RAG."},
+                ],
+                "chat_model": {
+                    "platform": "OpenAI",
+                    "model_name": "gpt-4o",
+                    "temperature": 0.7,
+                    "max_tokens": 2048,
+                },
+            }
+        }
+
+    @root_validator(pre=True)
+    def validate(cls, values):
+        values = super().validate(values)
+        data_id = values.get('data_id', "")
+        if not data_id.strip():
+            raise CustomException(http_code=400, code='400', message=f"[data_id] is not empty.")
 
         return values

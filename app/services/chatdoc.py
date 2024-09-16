@@ -9,7 +9,7 @@ from app.helpers.exception_handler import CustomException
 from app.helpers.llm.preprompts.store import user_prompt_add_document_lc
 from app.mq_main import celery_execute, redis
 from app.schemas.base import DataResponse
-from app.schemas.chatdoc import ChatDocRequest
+from app.schemas.chatdoc import ChatDocLCRequest, ChatDocRAGRequest
 from app.schemas.queue import QueueResult
 
 from sse_starlette import EventSourceResponse
@@ -52,7 +52,7 @@ class ChatDocService(object):
 
 
     @staticmethod
-    def chat_doc_lc(request: ChatDocRequest):
+    def chat_doc_lc(request: ChatDocLCRequest):
         """
         "example": {
             "data_id": "",
@@ -85,7 +85,7 @@ class ChatDocService(object):
             raise CustomException(http_code=500, code='500', message="Internal Server Error")
 
     @staticmethod
-    def chat_doc_rag(request: ChatDocRequest):
+    def chat_doc_rag(request: ChatDocRAGRequest):
         """
         "example": {
             "data_id": "",
@@ -119,7 +119,7 @@ class ChatDocService(object):
 
 
 
-def chatdoclc_openai(request: ChatDocRequest):
+def chatdoclc_openai(request: ChatDocLCRequest):
     message_id = f"message_id_{datetime.utcnow().strftime('%Y%m%d%H%M%S%f')}"
 
     # Init Chat
@@ -140,7 +140,7 @@ def chatdoclc_openai(request: ChatDocRequest):
     yield chatdoc.stream_data(stream_type="DONE", message_id=message_id, data="DONE")
 
 
-def chatdocrag_openai(request: ChatDocRequest):
+def chatdocrag_openai(request: ChatDocRAGRequest):
     message_id = f"message_id_{datetime.utcnow().strftime('%Y%m%d%H%M%S%f')}"
 
     # Init Chat

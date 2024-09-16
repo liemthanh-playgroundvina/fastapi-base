@@ -11,7 +11,7 @@ from app.helpers.login_manager import login_required, PermissionRequired
 from app.mq_main import redis
 from app.schemas.base import DataResponse
 
-from app.schemas.chatdoc import EmbedDocRequest, ChatDocRequest
+from app.schemas.chatdoc import EmbedDocRequest, ChatDocLCRequest, ChatDocRAGRequest
 from app.schemas.queue import QueueResponse
 from app.services.chatdoc import ChatDocService
 from app.services.common import CommonService
@@ -99,7 +99,7 @@ def embed_doc_queue(
     dependencies=[Depends(login_required)],
     # response_model=DataResponse[]
 )
-def chat_doc_lc(request: ChatDocRequest) -> Any:
+def chat_doc_lc(request: ChatDocLCRequest) -> Any:
     """
     Chat Document Using LLM Long Context
 
@@ -125,7 +125,7 @@ def chat_doc_lc(request: ChatDocRequest) -> Any:
         - With Draw Plot Tool:
             <PLOT> json_plot <\PLOT>
     """
-    request = ChatDocRequest(**request)
+    request = ChatDocLCRequest(**request)
     return ChatDocService().chat_doc_lc(request)
 
 
@@ -134,7 +134,7 @@ def chat_doc_lc(request: ChatDocRequest) -> Any:
     dependencies=[Depends(login_required)],
     # response_model=DataResponse[]
 )
-def chat_doc_rag(request: ChatDocRequest) -> Any:
+def chat_doc_rag(request: ChatDocRAGRequest) -> Any:
     """
     Chat Document Using RAG
 
@@ -160,5 +160,5 @@ def chat_doc_rag(request: ChatDocRequest) -> Any:
         - With Draw Plot Tool:
             <PLOT> json_plot <\PLOT>
     """
-    request = ChatDocRequest(**request)
+    request = ChatDocRAGRequest(**request)
     return ChatDocService().chat_doc_rag(request)
